@@ -1,0 +1,27 @@
+{
+	"schemaVersion": 1,
+	"id": "advanced_nuc_runs",
+	"version": "${version}",
+	"name": "Advanced NUC Runs",
+	"description": "Client-side waypoints for Nucleus runs. /anc JT places the Jungle Temple waypoints, /anc WP marks your position.",
+	"authors": [
+		"Ninjachicken784"
+	],
+	"contact": {
+		"sources": "https://github.com/Ninjachicken784/advanced-nuc-runs"
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/advanced_nuc_runs/icon.png",
+	"environment": "client",
+	"entrypoints": {
+		"client": [
+			"com.ninjachicken784.advancednucruns.client.AdvancedNucRunsClient"
+		]
+	},
+	"depends": {
+		"fabricloader": ">=0.18.4",
+		"minecraft": "~26.1.2",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}
