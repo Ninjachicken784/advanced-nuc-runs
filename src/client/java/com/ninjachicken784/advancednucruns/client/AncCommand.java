@@ -49,7 +49,9 @@ final class AncCommand {
 		if (action instanceof CommandParser.Action.JungleTemple) {
 			BlockPos pos = source.getPlayer().blockPosition();
 			List<Waypoint> added = AdvancedNucRunsClient.WAYPOINTS.setJungleTemple(pos.getX(), pos.getY(), pos.getZ());
-			source.sendFeedback(Component.literal("Jungle Temple waypoints set:"));
+			// Starting a Jungle Temple run also starts a fresh run timer.
+			AdvancedNucRunsClient.RUN_TIMER.start(System.nanoTime());
+			source.sendFeedback(Component.literal("Jungle Temple waypoints set. Run timer started:"));
 			for (Waypoint w : added) {
 				source.sendFeedback(Component.literal(describe(w)));
 			}
@@ -66,6 +68,14 @@ final class AncCommand {
 			} else {
 				source.sendError(Component.literal("There is no waypoint " + clearOne.id() + "."));
 			}
+		} else if (action instanceof CommandParser.Action.TimerStart) {
+			AdvancedNucRunsClient.RUN_TIMER.start(System.nanoTime());
+			source.sendFeedback(Component.literal("Run timer started."));
+		} else if (action instanceof CommandParser.Action.TimerReset) {
+			AdvancedNucRunsClient.RUN_TIMER.reset();
+			source.sendFeedback(Component.literal("Run timer reset."));
+		} else if (action instanceof CommandParser.Action.TimerMove) {
+			TimerHud.requestMoveScreen();
 		} else if (action instanceof CommandParser.Action.Invalid invalid) {
 			source.sendError(Component.literal(invalid.message()));
 		}

@@ -10,7 +10,10 @@ import java.util.Locale;
 public final class CommandParser {
 	public static final String USAGE =
 		"Usage: /anc JT | /anc Jungle Temple | /anc WP | /anc Waypoints"
-			+ " | /anc Clear all | /anc Clear waypoint <number>";
+			+ " | /anc Clear all | /anc Clear waypoint <number>"
+			+ " | /anc Timer start | /anc Timer reset | /anc Timer move";
+
+	private static final String TIMER_USAGE = "Usage: /anc Timer start | /anc Timer reset | /anc Timer move";
 
 	/** Full command texts offered for tab completion. */
 	public static final List<String> SUGGESTIONS = List.of(
@@ -19,7 +22,10 @@ public final class CommandParser {
 		"Waypoints",
 		"WP",
 		"Clear all",
-		"Clear waypoint 1"
+		"Clear waypoint 1",
+		"Timer start",
+		"Timer reset",
+		"Timer move"
 	);
 
 	public sealed interface Action {
@@ -30,6 +36,12 @@ public final class CommandParser {
 		record ClearAll() implements Action { }
 
 		record ClearOne(int id) implements Action { }
+
+		record TimerStart() implements Action { }
+
+		record TimerReset() implements Action { }
+
+		record TimerMove() implements Action { }
 
 		record Invalid(String message) implements Action { }
 	}
@@ -56,7 +68,26 @@ public final class CommandParser {
 		if (t[0].equals("clear")) {
 			return parseClear(t);
 		}
+		if (t[0].equals("timer")) {
+			return parseTimer(t);
+		}
 		return new Action.Invalid(USAGE);
+	}
+
+	private static Action parseTimer(String[] t) {
+		if (t.length == 2) {
+			switch (t[1]) {
+				case "start":
+					return new Action.TimerStart();
+				case "reset":
+					return new Action.TimerReset();
+				case "move":
+					return new Action.TimerMove();
+				default:
+					break;
+			}
+		}
+		return new Action.Invalid(TIMER_USAGE);
 	}
 
 	private static Action parseClear(String[] t) {
