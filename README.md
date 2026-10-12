@@ -52,7 +52,7 @@ Times on screen are shown as minutes and seconds, like `1min 22sec`.
 - A run is a new PB if it is your first run, or strictly faster than your PB. Equal does not count.
 - The PB is saved when you close the game. The average starts again every session.
 - `/anc GUI` opens the move screen: drag a box with the left mouse button, scroll the mouse wheel over a box to make it bigger (scroll up) or smaller (scroll down), right-click a box to hide or show it, and press Esc to save. Each box has its own size. Hidden boxes are grey with a red frame on that screen. The Run Time box shows a sample on that screen so you can place it.
-- The text is bold with a black outline and a soft shadow.
+- The Run Time / PB popup is centered on its spot, so the text stays lined up in the middle when it changes between `Run Time` and `PB` or the time gets longer or shorter.
 - Positions, sizes, hidden boxes and the PB are saved in `config/advanced_nuc_runs.properties`.
 - To try it without doing a run, use `/anc Run 2 min`. Test runs count as real runs for the PB and average, so use `/anc Stats reset` to clear them afterwards. A test run does not touch the Timer box.
 

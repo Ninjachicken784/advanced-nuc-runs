@@ -1,8 +1,12 @@
 package com.ninjachicken784.advancednucruns.client;
 
 /**
- * One movable, hideable, resizable box on the screen. The position is the top-left corner in
- * GUI pixels. Contains no Minecraft code so the resizing can be tested on its own.
+ * One movable, hideable, resizable box on the screen. Contains no Minecraft code so the
+ * resizing and positioning can be tested on its own.
+ *
+ * <p>For a normal box, x is the left edge. For a centered box (the Run Time / PB popup), x is the
+ * middle, so the text stays lined up when the label or the time changes length. For both, y is
+ * the top. Positions are in GUI pixels.
  */
 final class HudBox {
 	enum Kind {
@@ -24,17 +28,38 @@ final class HudBox {
 	final Kind kind;
 	/** Name used in the config file. */
 	final String key;
+	/** True if x is the middle of the box instead of its left edge. */
+	final boolean centered;
 	int x;
 	int y;
 	boolean hidden;
 	/** How big the text is drawn. 1 is the normal Minecraft text size. */
 	float scale = DEFAULT_SCALE;
 
-	HudBox(Kind kind, String key, int defaultX, int defaultY) {
+	HudBox(Kind kind, String key, boolean centered, int defaultX, int defaultY) {
 		this.kind = kind;
 		this.key = key;
+		this.centered = centered;
 		this.x = defaultX;
 		this.y = defaultY;
+	}
+
+	/** The left edge of the box when it is this wide. */
+	int left(int width) {
+		return centered ? x - width / 2 : x;
+	}
+
+	/** True if the point is inside the box when it is this wide and tall. */
+	boolean contains(int width, int height, int pointX, int pointY) {
+		int left = left(width);
+		return pointX >= left && pointX < left + width && pointY >= y && pointY < y + height;
+	}
+
+	/** Moves the box back onto the screen if any part of it is outside. */
+	void keepOnScreen(int width, int height, int guiWidth, int guiHeight) {
+		int left = Math.max(0, Math.min(left(width), guiWidth - width));
+		x = centered ? left + width / 2 : left;
+		y = Math.max(0, Math.min(y, guiHeight - height));
 	}
 
 	/**

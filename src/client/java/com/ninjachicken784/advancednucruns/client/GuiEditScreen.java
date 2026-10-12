@@ -55,10 +55,11 @@ final class GuiEditScreen extends Screen {
 	private void frame(GuiGraphicsExtractor graphics, HudBox box, RunHud.Content content, int color) {
 		int width = RunHud.width(this.font, box, content);
 		int height = RunHud.height(this.font, box);
-		graphics.fill(box.x - 1, box.y - 1, box.x + width + 1, box.y, color);
-		graphics.fill(box.x - 1, box.y + height, box.x + width + 1, box.y + height + 1, color);
-		graphics.fill(box.x - 1, box.y, box.x, box.y + height, color);
-		graphics.fill(box.x + width, box.y, box.x + width + 1, box.y + height, color);
+		int left = box.left(width);
+		graphics.fill(left - 1, box.y - 1, left + width + 1, box.y, color);
+		graphics.fill(left - 1, box.y + height, left + width + 1, box.y + height + 1, color);
+		graphics.fill(left - 1, box.y, left, box.y + height, color);
+		graphics.fill(left + width, box.y, left + width + 1, box.y + height, color);
 	}
 
 	/** The box under the mouse. Boxes drawn later are on top, so look from the end. */
@@ -82,6 +83,7 @@ final class GuiEditScreen extends Screen {
 			}
 			if (event.button() == LEFT_BUTTON) {
 				dragging = hit;
+				// Measured from the box's x, which is its middle for the centered popup.
 				grabOffsetX = lastMouseX - hit.x;
 				grabOffsetY = lastMouseY - hit.y;
 				return true;

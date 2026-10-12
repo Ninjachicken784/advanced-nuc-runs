@@ -20,10 +20,11 @@ final class GuiConfig {
 	private static final String CONFIG_FILE = "advanced_nuc_runs.properties";
 	private static final String PB_KEY = "pbNanos";
 
-	static final HudBox TIMER = new HudBox(HudBox.Kind.TIMER, "timer", 5, 5);
-	static final HudBox RUN_TIME = new HudBox(HudBox.Kind.RUN_TIME, "run_time", 5, 30);
-	static final HudBox PB = new HudBox(HudBox.Kind.PB, "pb", 5, 55);
-	static final HudBox AVERAGE = new HudBox(HudBox.Kind.AVERAGE, "average", 5, 80);
+	static final HudBox TIMER = new HudBox(HudBox.Kind.TIMER, "timer", false, 5, 5);
+	/** The popup is centered, so its x is the middle of the box. */
+	static final HudBox RUN_TIME = new HudBox(HudBox.Kind.RUN_TIME, "run_time", true, 85, 28);
+	static final HudBox PB = new HudBox(HudBox.Kind.PB, "pb", false, 5, 51);
+	static final HudBox AVERAGE = new HudBox(HudBox.Kind.AVERAGE, "average", false, 5, 74);
 
 	/** Every box, in the order they are drawn. */
 	static final List<HudBox> ALL = List.of(TIMER, RUN_TIME, PB, AVERAGE);
@@ -32,6 +33,14 @@ final class GuiConfig {
 
 	private static Path path() {
 		return FabricLoader.getInstance().getConfigDir().resolve(CONFIG_FILE);
+	}
+
+	/**
+	 * The config name for a box's x. A centered box saves its middle under a different name than
+	 * the left edge older versions saved, so an old left edge is never read as a middle.
+	 */
+	private static String xKey(HudBox box) {
+		return box.key + (box.centered ? ".centerX" : ".x");
 	}
 
 	static void load() {
@@ -47,7 +56,7 @@ final class GuiConfig {
 				// Older versions only saved the timer, as timerX and timerY.
 				String legacyX = box == TIMER ? "timerX" : null;
 				String legacyY = box == TIMER ? "timerY" : null;
-				box.x = readInt(properties, box.key + ".x", legacyX, box.x);
+				box.x = readInt(properties, xKey(box), legacyX, box.x);
 				box.y = readInt(properties, box.key + ".y", legacyY, box.y);
 				box.hidden = Boolean.parseBoolean(properties.getProperty(box.key + ".hidden", "false").trim());
 
@@ -69,7 +78,7 @@ final class GuiConfig {
 	static void save() {
 		Properties properties = new Properties();
 		for (HudBox box : ALL) {
-			properties.setProperty(box.key + ".x", String.valueOf(box.x));
+			properties.setProperty(xKey(box), String.valueOf(box.x));
 			properties.setProperty(box.key + ".y", String.valueOf(box.y));
 			properties.setProperty(box.key + ".hidden", String.valueOf(box.hidden));
 			properties.setProperty(box.key + ".scale", String.valueOf(box.scale));

@@ -116,16 +116,16 @@ final class RunHud {
 	}
 
 	static boolean contains(HudBox box, Content content, Font font, int mouseX, int mouseY) {
-		return mouseX >= box.x && mouseX < box.x + width(font, box, content)
-			&& mouseY >= box.y && mouseY < box.y + height(font, box);
+		return box.contains(width(font, box, content), height(font, box), mouseX, mouseY);
 	}
 
 	/** Draws one box, keeping it on screen, for example after the window was made smaller. */
 	static void draw(GuiGraphicsExtractor graphics, Font font, HudBox box, Content content, boolean dim) {
-		box.x = Math.max(0, Math.min(box.x, graphics.guiWidth() - width(font, box, content)));
-		box.y = Math.max(0, Math.min(box.y, graphics.guiHeight() - height(font, box)));
+		int width = width(font, box, content);
+		int height = height(font, box);
+		box.keepOnScreen(width, height, graphics.guiWidth(), graphics.guiHeight());
 
-		HudText.draw(graphics, font, content.label(), content.value(), box.x, box.y, box.scale,
+		HudText.draw(graphics, font, content.label(), content.value(), box.left(width), box.y, box.scale,
 			dim ? HudText.LABEL_DIM : HudText.LABEL, dim ? HudText.VALUE_DIM : HudText.VALUE);
 	}
 }
