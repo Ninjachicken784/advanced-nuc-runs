@@ -9,7 +9,7 @@ import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents;
 import com.ninjachicken784.advancednucruns.RunTimer;
 
 /**
- * Ends the current run when the Crystal Nucleus loot bundle shows up in chat, prints its time,
+ * Ends the current run when the Crystal Nucleus loot bundle shows up in chat, reports its time,
  * and starts timing the next run from that same moment.
  */
 final class RunChatListener {
@@ -32,8 +32,7 @@ final class RunChatListener {
 				client.player.sendSystemMessage(Component.literal(
 					"Timer started. Your next run is timed from this finish.").withStyle(ChatFormatting.YELLOW));
 			} else {
-				client.player.sendSystemMessage(Component.literal(
-					"Run finished in " + RunTimer.format(elapsed)).withStyle(ChatFormatting.GREEN));
+				RunResults.finished(elapsed, false);
 			}
 		});
 	}

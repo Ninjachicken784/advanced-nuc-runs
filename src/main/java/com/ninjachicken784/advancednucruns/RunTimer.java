@@ -56,13 +56,24 @@ public final class RunTimer {
 		return state == State.RUNNING ? Math.max(0L, nowNanos - startNanos) : 0L;
 	}
 
-	/** Formats a time as minutes:seconds.hundredths, for example 3:42.18. */
+	/** Formats a time as minutes:seconds.hundredths, for example 3:42.18. Used in chat. */
 	public static String format(long nanos) {
 		long hundredths = Math.max(0L, nanos) / 10_000_000L;
 		long minutes = hundredths / 6000L;
 		long seconds = (hundredths / 100L) % 60L;
 		long rest = hundredths % 100L;
 		return String.format(Locale.ROOT, "%d:%02d.%02d", minutes, seconds, rest);
+	}
+
+	/**
+	 * Formats a time as minutes and seconds only, for example "1min 22sec", or "45sec" when it is
+	 * under a minute. Partial seconds are dropped. Used on the on-screen GUIs.
+	 */
+	public static String formatShort(long nanos) {
+		long totalSeconds = Math.max(0L, nanos) / 1_000_000_000L;
+		long minutes = totalSeconds / 60L;
+		long seconds = totalSeconds % 60L;
+		return minutes > 0L ? minutes + "min " + seconds + "sec" : seconds + "sec";
 	}
 
 	/** True if this chat line is the Crystal Nucleus loot bundle header. */

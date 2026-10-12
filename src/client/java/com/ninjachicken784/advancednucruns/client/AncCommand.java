@@ -72,8 +72,15 @@ final class AncCommand {
 		} else if (action instanceof CommandParser.Action.TimerReset) {
 			AdvancedNucRunsClient.RUN_TIMER.reset();
 			source.sendFeedback(Component.literal("Run timer reset."));
-		} else if (action instanceof CommandParser.Action.TimerMove) {
-			TimerHud.requestMoveScreen();
+		} else if (action instanceof CommandParser.Action.TimerMove || action instanceof CommandParser.Action.Gui) {
+			RunHud.requestEditScreen();
+		} else if (action instanceof CommandParser.Action.RunTest runTest) {
+			// A simulated run. It goes through the same steps as a real one, but leaves the live timer alone.
+			RunResults.finished(runTest.nanos(), true);
+		} else if (action instanceof CommandParser.Action.StatsReset) {
+			AdvancedNucRunsClient.RUN_STATS.reset();
+			GuiConfig.save();
+			source.sendFeedback(Component.literal("PB and session average cleared."));
 		} else if (action instanceof CommandParser.Action.Invalid invalid) {
 			source.sendError(Component.literal(invalid.message()));
 		}
