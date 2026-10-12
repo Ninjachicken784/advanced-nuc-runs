@@ -49,9 +49,7 @@ final class AncCommand {
 		if (action instanceof CommandParser.Action.JungleTemple) {
 			BlockPos pos = source.getPlayer().blockPosition();
 			List<Waypoint> added = AdvancedNucRunsClient.WAYPOINTS.setJungleTemple(pos.getX(), pos.getY(), pos.getZ());
-			// Starting a Jungle Temple run also starts a fresh run timer.
-			AdvancedNucRunsClient.RUN_TIMER.start(System.nanoTime());
-			source.sendFeedback(Component.literal("Jungle Temple waypoints set. Run timer started:"));
+			source.sendFeedback(Component.literal("Jungle Temple waypoints set:"));
 			for (Waypoint w : added) {
 				source.sendFeedback(Component.literal(describe(w)));
 			}

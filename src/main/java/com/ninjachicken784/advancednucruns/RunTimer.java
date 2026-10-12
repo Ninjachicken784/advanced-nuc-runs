@@ -3,63 +3,57 @@ package com.ninjachicken784.advancednucruns;
 import java.util.Locale;
 
 /**
- * Times one run from start to finish. Contains no Minecraft code, and the current time is passed
- * in, so it can be tested on its own.
+ * Times runs back to back: each run is measured from the previous finish to the next finish.
+ * Contains no Minecraft code, and the current time is passed in, so it can be tested on its own.
  */
 public final class RunTimer {
 	/** The loot bundle line Hypixel prints when a Nucleus run is complete (compared in lower case). */
 	private static final String FINISH_TEXT = "crystal nucleus loot bundle";
 
 	public enum State {
-		/** No run has been timed yet, or the timer was reset. */
+		/** The clock is not running: nothing has finished yet, or the timer was reset. */
 		IDLE,
-		/** A run is being timed. */
-		RUNNING,
-		/** The last run is done and its final time is shown. */
-		FINISHED
+		/** The clock is running and counting the current run. */
+		RUNNING
 	}
 
 	private State state = State.IDLE;
 	private long startNanos;
-	private long finalNanos;
 
-	/** Starts a fresh run. Anything already running or finished is discarded. */
+	/** Starts the clock now. Whatever was being counted is discarded. */
 	public synchronized void start(long nowNanos) {
 		state = State.RUNNING;
 		startNanos = nowNanos;
-		finalNanos = 0L;
 	}
 
 	/**
-	 * Stops the run and returns its time in nanoseconds, or -1 if no run was being timed.
+	 * Ends the current run and starts the next one at the same moment, so no time is lost between
+	 * runs. Returns the time of the run that just ended in nanoseconds. If the clock was not
+	 * running yet (the very first finish), it starts the clock and returns -1.
 	 */
-	public synchronized long finish(long nowNanos) {
+	public synchronized long finishRun(long nowNanos) {
 		if (state != State.RUNNING) {
+			start(nowNanos);
 			return -1L;
 		}
-		finalNanos = Math.max(0L, nowNanos - startNanos);
-		state = State.FINISHED;
-		return finalNanos;
+		long runNanos = Math.max(0L, nowNanos - startNanos);
+		startNanos = nowNanos;
+		return runNanos;
 	}
 
-	/** Clears the timer back to its idle state. */
+	/** Stops the clock and clears it. The next finish starts it again. */
 	public synchronized void reset() {
 		state = State.IDLE;
 		startNanos = 0L;
-		finalNanos = 0L;
 	}
 
 	public synchronized State state() {
 		return state;
 	}
 
-	/** Time to show right now: counting up while running, frozen when finished, zero when idle. */
+	/** Time of the current run so far, or zero when the clock is not running. */
 	public synchronized long elapsedNanos(long nowNanos) {
-		return switch (state) {
-			case IDLE -> 0L;
-			case RUNNING -> Math.max(0L, nowNanos - startNanos);
-			case FINISHED -> finalNanos;
-		};
+		return state == State.RUNNING ? Math.max(0L, nowNanos - startNanos) : 0L;
 	}
 
 	/** Formats a time as minutes:seconds.hundredths, for example 3:42.18. */

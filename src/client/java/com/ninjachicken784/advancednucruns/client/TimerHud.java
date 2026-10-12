@@ -33,7 +33,6 @@ final class TimerHud {
 	private static final int BORDER = 0xFFFFFFFF;
 	private static final int COLOR_IDLE = 0xFFAAAAAA;
 	private static final int COLOR_RUNNING = 0xFFFFFF55;
-	private static final int COLOR_FINISHED = 0xFF55FF55;
 
 	/** Top-left corner of the box, in GUI pixels. */
 	static int x = 5;
@@ -116,7 +115,6 @@ final class TimerHud {
 		return switch (AdvancedNucRunsClient.RUN_TIMER.state()) {
 			case IDLE -> COLOR_IDLE;
 			case RUNNING -> COLOR_RUNNING;
-			case FINISHED -> COLOR_FINISHED;
 		};
 	}
 
