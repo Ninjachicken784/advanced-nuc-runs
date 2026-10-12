@@ -13,17 +13,17 @@ import net.fabricmc.loader.api.FabricLoader;
 import com.ninjachicken784.advancednucruns.AdvancedNucRuns;
 
 /**
- * The GUI boxes and what is saved between sessions: where each box is, whether it is hidden,
- * and the PB. Everything is stored in config/advanced_nuc_runs.properties.
+ * The GUI boxes and what is saved between sessions: where each box is, how big it is, whether it
+ * is hidden, and the PB. Everything is stored in config/advanced_nuc_runs.properties.
  */
 final class GuiConfig {
 	private static final String CONFIG_FILE = "advanced_nuc_runs.properties";
 	private static final String PB_KEY = "pbNanos";
 
 	static final HudBox TIMER = new HudBox(HudBox.Kind.TIMER, "timer", 5, 5);
-	static final HudBox RUN_TIME = new HudBox(HudBox.Kind.RUN_TIME, "run_time", 5, 28);
-	static final HudBox PB = new HudBox(HudBox.Kind.PB, "pb", 5, 51);
-	static final HudBox AVERAGE = new HudBox(HudBox.Kind.AVERAGE, "average", 5, 74);
+	static final HudBox RUN_TIME = new HudBox(HudBox.Kind.RUN_TIME, "run_time", 5, 30);
+	static final HudBox PB = new HudBox(HudBox.Kind.PB, "pb", 5, 55);
+	static final HudBox AVERAGE = new HudBox(HudBox.Kind.AVERAGE, "average", 5, 80);
 
 	/** Every box, in the order they are drawn. */
 	static final List<HudBox> ALL = List.of(TIMER, RUN_TIME, PB, AVERAGE);
@@ -50,6 +50,11 @@ final class GuiConfig {
 				box.x = readInt(properties, box.key + ".x", legacyX, box.x);
 				box.y = readInt(properties, box.key + ".y", legacyY, box.y);
 				box.hidden = Boolean.parseBoolean(properties.getProperty(box.key + ".hidden", "false").trim());
+
+				String scale = properties.getProperty(box.key + ".scale");
+				if (scale != null) {
+					box.scale = HudBox.clampScale(Float.parseFloat(scale.trim()));
+				}
 			}
 
 			String pb = properties.getProperty(PB_KEY);
@@ -67,6 +72,7 @@ final class GuiConfig {
 			properties.setProperty(box.key + ".x", String.valueOf(box.x));
 			properties.setProperty(box.key + ".y", String.valueOf(box.y));
 			properties.setProperty(box.key + ".hidden", String.valueOf(box.hidden));
+			properties.setProperty(box.key + ".scale", String.valueOf(box.scale));
 		}
 		long pb = AdvancedNucRunsClient.RUN_STATS.pbNanos();
 		if (pb > 0L) {

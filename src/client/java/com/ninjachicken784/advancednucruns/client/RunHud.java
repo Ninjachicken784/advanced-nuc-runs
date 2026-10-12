@@ -15,7 +15,7 @@ import com.ninjachicken784.advancednucruns.RunTimer;
 
 /**
  * The on-screen GUIs: the live timer, the Run Time / PB popup after a run, the PB, and the
- * session average. Where they are and whether they are hidden lives in {@link GuiConfig}.
+ * session average. Where they are, how big, and whether they are hidden lives in {@link GuiConfig}.
  */
 final class RunHud {
 	private static final Identifier ID = Identifier.fromNamespaceAndPath(AdvancedNucRuns.MOD_ID, "run_gui");
@@ -107,25 +107,25 @@ final class RunHud {
 		return nanos < 0L ? "--" : RunTimer.formatShort(nanos);
 	}
 
-	static int width(Font font, Content content) {
-		return HudText.width(font, content.label(), content.value());
+	static int width(Font font, HudBox box, Content content) {
+		return HudText.width(font, content.label(), content.value(), box.scale);
 	}
 
-	static int height(Font font) {
-		return HudText.height(font);
+	static int height(Font font, HudBox box) {
+		return HudText.height(font, box.scale);
 	}
 
 	static boolean contains(HudBox box, Content content, Font font, int mouseX, int mouseY) {
-		return mouseX >= box.x && mouseX < box.x + width(font, content)
-			&& mouseY >= box.y && mouseY < box.y + height(font);
+		return mouseX >= box.x && mouseX < box.x + width(font, box, content)
+			&& mouseY >= box.y && mouseY < box.y + height(font, box);
 	}
 
 	/** Draws one box, keeping it on screen, for example after the window was made smaller. */
 	static void draw(GuiGraphicsExtractor graphics, Font font, HudBox box, Content content, boolean dim) {
-		box.x = Math.max(0, Math.min(box.x, graphics.guiWidth() - width(font, content)));
-		box.y = Math.max(0, Math.min(box.y, graphics.guiHeight() - height(font)));
+		box.x = Math.max(0, Math.min(box.x, graphics.guiWidth() - width(font, box, content)));
+		box.y = Math.max(0, Math.min(box.y, graphics.guiHeight() - height(font, box)));
 
-		HudText.draw(graphics, font, content.label(), content.value(), box.x, box.y,
+		HudText.draw(graphics, font, content.label(), content.value(), box.x, box.y, box.scale,
 			dim ? HudText.LABEL_DIM : HudText.LABEL, dim ? HudText.VALUE_DIM : HudText.VALUE);
 	}
 }

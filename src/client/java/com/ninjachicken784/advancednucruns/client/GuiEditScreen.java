@@ -6,8 +6,9 @@ import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 
 /**
- * Lets the player move and hide the GUIs. Drag a box with the left mouse button, right-click it
- * to hide or show it. Closing the screen (Esc) saves everything.
+ * Lets the player move, resize and hide the GUIs. Drag a box with the left mouse button, scroll
+ * over it to make it bigger or smaller, right-click it to hide or show it. Closing the screen
+ * (Esc) saves everything.
  */
 final class GuiEditScreen extends Screen {
 	private static final int DIM = 0x50000000;
@@ -45,14 +46,15 @@ final class GuiEditScreen extends Screen {
 		}
 
 		int centerX = graphics.guiWidth() / 2;
-		graphics.centeredText(this.font, "Drag a box to move it. Right-click a box to hide or show it.", centerX, 20, WHITE);
-		graphics.centeredText(this.font, "Hidden boxes are grey with a red frame. Press Esc to save.", centerX, 32, WHITE);
+		graphics.centeredText(this.font, "Drag a box to move it. Scroll over a box to make it bigger or smaller.", centerX, 20, WHITE);
+		graphics.centeredText(this.font, "Right-click a box to hide or show it. Hidden boxes are grey with a red frame.", centerX, 32, WHITE);
+		graphics.centeredText(this.font, "Press Esc to save.", centerX, 44, WHITE);
 	}
 
 	/** A thin frame around a box so it is easy to see and grab. */
 	private void frame(GuiGraphicsExtractor graphics, HudBox box, RunHud.Content content, int color) {
-		int width = RunHud.width(this.font, content);
-		int height = RunHud.height(this.font);
+		int width = RunHud.width(this.font, box, content);
+		int height = RunHud.height(this.font, box);
 		graphics.fill(box.x - 1, box.y - 1, box.x + width + 1, box.y, color);
 		graphics.fill(box.x - 1, box.y + height, box.x + width + 1, box.y + height + 1, color);
 		graphics.fill(box.x - 1, box.y, box.x, box.y + height, color);
@@ -92,6 +94,17 @@ final class GuiEditScreen extends Screen {
 	public boolean mouseReleased(MouseButtonEvent event) {
 		dragging = null;
 		return super.mouseReleased(event);
+	}
+
+	/** Scrolling up over a box makes it bigger, scrolling down makes it smaller. */
+	@Override
+	public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+		HudBox hit = boxAt(lastMouseX, lastMouseY);
+		if (hit != null && scrollY != 0) {
+			hit.resize(scrollY > 0 ? 1 : -1);
+			return true;
+		}
+		return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
 	}
 
 	@Override
