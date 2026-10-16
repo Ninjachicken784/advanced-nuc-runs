@@ -22,13 +22,25 @@ import com.ninjachicken784.advancednucruns.MeterMenuReader;
  * meter GUI.
  */
 final class MeterReader {
-	/** The icon of the selected drop. Paper until the menu has been opened once. */
-	private static volatile ItemStack icon = new ItemStack(Items.PAPER);
+	/**
+	 * The icon of the selected drop, copied from the menu. Null until the menu has been opened once.
+	 * Not created here: item stacks cannot be made while the mod is starting, before the game's items are ready.
+	 */
+	private static volatile ItemStack icon;
+	/** Shown until then. Made the first time it is drawn, when the game is ready. */
+	private static ItemStack placeholder;
 
 	private MeterReader() { }
 
 	static ItemStack icon() {
-		return icon;
+		ItemStack copied = icon;
+		if (copied != null) {
+			return copied;
+		}
+		if (placeholder == null) {
+			placeholder = new ItemStack(Items.PAPER);
+		}
+		return placeholder;
 	}
 
 	static void register() {
