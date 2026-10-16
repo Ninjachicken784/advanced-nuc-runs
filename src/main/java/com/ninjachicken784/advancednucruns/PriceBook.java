@@ -25,6 +25,8 @@ public final class PriceBook {
 	private volatile Map<String, Bazaar> bazaar = Map.of();
 	private volatile Map<String, Double> bins = Map.of();
 	private volatile Map<String, String> idsByName = Map.of();
+	/** Lowest BINs found by scanning the Auction House, by normalized item name. */
+	private volatile Map<String, Double> nameBins = Map.of();
 
 	/** Builds a Bazaar entry from the two prices in either order. */
 	public static Bazaar bazaarOf(double one, double other) {
@@ -42,6 +44,11 @@ public final class PriceBook {
 	/** Item ids by normalized display name, used to price drops that are not in the built-in list. */
 	public void setIdsByName(Map<String, String> ids) {
 		idsByName = Map.copyOf(ids);
+	}
+
+	/** Lowest BINs by normalized item name, used for drops the id lists have no price for. */
+	public void setNameBins(Map<String, Double> prices) {
+		nameBins = Map.copyOf(prices);
 	}
 
 	public boolean hasBazaar() {
@@ -77,8 +84,14 @@ public final class PriceBook {
 
 	/** Price of a drop that is not in the built-in list, found by its name. NaN if unknown. */
 	public double priceByName(String name, Mode mode) {
-		String id = idsByName.get(NucleusItems.normalize(name));
-		return id == null ? Double.NaN : price(id, null, mode);
+		String normalized = NucleusItems.normalize(name);
+		String id = idsByName.get(normalized);
+		double price = id == null ? Double.NaN : price(id, null, mode);
+		if (!Double.isNaN(price)) {
+			return price;
+		}
+		Double auction = nameBins.get(normalized);
+		return auction != null ? auction : Double.NaN;
 	}
 
 	/**

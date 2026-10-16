@@ -2,6 +2,7 @@ package com.ninjachicken784.advancednucruns;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -69,6 +70,42 @@ public final class PriceFeed {
 			}
 		}
 		return prices;
+	}
+
+	/** One page of the Auction House: how many pages there are, and the lowest BIN of the wanted items on this page. */
+	public record AuctionPage(int totalPages, Map<String, Double> lowestByName) { }
+
+	/**
+	 * Reads one page of the Hypixel auction list and keeps the lowest buy-it-now price of every
+	 * wanted item, by normalized item name. Only auctions that are BINs count.
+	 *
+	 * @param wanted normalized item names to look for
+	 */
+	public static AuctionPage parseAuctionPage(String json, Set<String> wanted) {
+		JsonObject root = JsonParser.parseString(json).getAsJsonObject();
+		if (!root.has("auctions") || !root.get("auctions").isJsonArray()) {
+			throw new IllegalArgumentException("The auction page has no auctions");
+		}
+		int totalPages = root.has("totalPages") && root.get("totalPages").isJsonPrimitive()
+			? root.get("totalPages").getAsInt() : 1;
+
+		Map<String, Double> lowest = new HashMap<>();
+		for (JsonElement element : root.getAsJsonArray("auctions")) {
+			if (!element.isJsonObject()) {
+				continue;
+			}
+			JsonObject auction = element.getAsJsonObject();
+			boolean bin = auction.has("bin") && auction.get("bin").isJsonPrimitive() && auction.get("bin").getAsBoolean();
+			if (!bin || !auction.has("item_name") || !auction.get("item_name").isJsonPrimitive()) {
+				continue;
+			}
+			String name = NucleusItems.normalize(auction.get("item_name").getAsString());
+			double price = number(auction, "starting_bid");
+			if (price > 0d && wanted.contains(name)) {
+				lowest.merge(name, price, Math::min);
+			}
+		}
+		return new AuctionPage(totalPages, lowest);
 	}
 
 	/** Item ids by normalized display name, so a drop can be priced by its name. */

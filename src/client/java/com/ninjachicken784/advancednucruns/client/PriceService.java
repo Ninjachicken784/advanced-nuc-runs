@@ -5,11 +5,22 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 
 import com.ninjachicken784.advancednucruns.AdvancedNucRuns;
+import com.ninjachicken784.advancednucruns.NucleusItems;
+import com.ninjachicken784.advancednucruns.PriceBook;
 import com.ninjachicken784.advancednucruns.PriceFeed;
 
 /**
@@ -24,13 +35,18 @@ final class PriceService {
 		"https://lbin.neu.io/lowestbin.json",
 		"https://moulberry.codes/lowestbin.json"
 	};
+	private static final String AUCTIONS = "https://api.hypixel.net/v2/skyblock/auctions?page=";
 	private static final long REFRESH_MILLIS = 5 * 60_000L;
+	/** Scanning every auction is heavy, so it is only done for drops that still have no price, and not often. */
+	private static final long SCAN_EVERY_MILLIS = 15 * 60_000L;
+	private static final int MAX_AUCTION_PAGES = 150;
 
 	private static final HttpClient HTTP = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
 	private static final AtomicBoolean BUSY = new AtomicBoolean();
 
 	private static volatile String status = "Prices not loaded yet";
 	private static volatile long lastAttempt = Long.MIN_VALUE / 2;
+	private static volatile long lastScan = Long.MIN_VALUE / 2;
 
 	private PriceService() { }
 
@@ -86,8 +102,77 @@ final class PriceService {
 			problems.append(" Item names failed.");
 			AdvancedNucRuns.LOGGER.warn("Could not load the item names", e);
 		}
-		status = problems.length() == 0 ? "Prices updated" : "Prices:" + problems;
+
+		// Drops that still have no price (a wrong item id, or the BIN list is down) are looked up
+		// directly in the Auction House by their name.
+		boolean scanned = false;
+		try {
+			Set<String> missing = unpricedNames();
+			if (!missing.isEmpty() && AdvancedNucRunsClient.PRICES.hasBazaar()
+				&& AdvancedNucRunsClient.nowMillis() - lastScan >= SCAN_EVERY_MILLIS) {
+				status = "Scanning the Auction House...";
+				lastScan = AdvancedNucRunsClient.nowMillis();
+				AdvancedNucRunsClient.PRICES.setNameBins(scanAuctions(missing));
+				scanned = true;
+			}
+		} catch (Exception e) {
+			problems.append(" Auction scan failed.");
+			AdvancedNucRuns.LOGGER.warn("Could not scan the Auction House", e);
+		}
+
+		String base = problems.length() == 0 ? "Prices updated" : "Prices:" + problems;
+		int stillMissing = unpricedNames().size();
+		status = base + (scanned ? " (auction scan)" : "") + (stillMissing > 0 ? ", " + stillMissing + " unpriced" : "");
 		BUSY.set(false);
+	}
+
+	/** Normalized names of the drops that have no price right now. */
+	private static Set<String> unpricedNames() {
+		PriceBook prices = AdvancedNucRunsClient.PRICES;
+		PriceBook.Mode mode = AdvancedNucRunsClient.TRACKER.priceMode();
+		Set<String> missing = new HashSet<>();
+		for (NucleusItems.Item item : NucleusItems.ALL) {
+			if (Double.isNaN(prices.price(item, mode))) {
+				missing.add(NucleusItems.normalize(item.name()));
+			}
+		}
+		for (String name : AdvancedNucRunsClient.TRACKER.customDrops().values()) {
+			if (Double.isNaN(prices.priceByName(name, mode))) {
+				missing.add(NucleusItems.normalize(name));
+			}
+		}
+		return missing;
+	}
+
+	/** The lowest BIN of each wanted name, found by reading every page of the Auction House. */
+	private static Map<String, Double> scanAuctions(Set<String> wanted) throws Exception {
+		PriceFeed.AuctionPage first = PriceFeed.parseAuctionPage(get(AUCTIONS + 0), wanted);
+		Map<String, Double> lowest = new HashMap<>(first.lowestByName());
+
+		int pages = Math.min(first.totalPages(), MAX_AUCTION_PAGES);
+		ExecutorService pool = Executors.newFixedThreadPool(4, runnable -> {
+			Thread thread = new Thread(runnable, "advanced-nuc-runs-auctions");
+			thread.setDaemon(true);
+			return thread;
+		});
+		try {
+			List<Future<PriceFeed.AuctionPage>> futures = new ArrayList<>();
+			for (int page = 1; page < pages; page++) {
+				int number = page;
+				futures.add(pool.submit(() -> PriceFeed.parseAuctionPage(get(AUCTIONS + number), wanted)));
+			}
+			for (Future<PriceFeed.AuctionPage> future : futures) {
+				try {
+					future.get().lowestByName().forEach((name, price) -> lowest.merge(name, price, Math::min));
+				} catch (Exception e) {
+					// One page failing only means a few auctions are missed.
+					AdvancedNucRuns.LOGGER.debug("An auction page failed", e);
+				}
+			}
+		} finally {
+			pool.shutdownNow();
+		}
+		return lowest;
 	}
 
 	private static String get(String url) throws Exception {

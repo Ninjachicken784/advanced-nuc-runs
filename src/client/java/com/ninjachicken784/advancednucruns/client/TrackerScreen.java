@@ -272,7 +272,17 @@ final class TrackerScreen extends Screen {
 		y += BUTTON + 10;
 
 		PriceBook prices = AdvancedNucRunsClient.PRICES;
-		graphics.text(this.font, PriceService.status(), x, y, GRAY);
+		// The status can be long, so it is wrapped to the width of the settings column.
+		StringBuilder lineText = new StringBuilder();
+		for (String word : PriceService.status().split(" ")) {
+			if (lineText.length() > 0 && this.font.width(lineText + " " + word) > SETTINGS_WIDTH) {
+				graphics.text(this.font, lineText.toString(), x, y, GRAY);
+				y += this.font.lineHeight + 1;
+				lineText.setLength(0);
+			}
+			lineText.append(lineText.length() > 0 ? " " : "").append(word);
+		}
+		graphics.text(this.font, lineText.toString(), x, y, GRAY);
 		y += this.font.lineHeight + 3;
 		String cost = ProfitTracker.costKnown(prices) ? Format.coins(ProfitTracker.costPerRun(prices)) : "?";
 		graphics.text(this.font, "Cost per run: " + cost, x, y, RED);
