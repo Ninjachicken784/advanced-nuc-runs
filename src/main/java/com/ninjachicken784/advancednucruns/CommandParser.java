@@ -13,7 +13,7 @@ public final class CommandParser {
 	public static final String USAGE =
 		"Usage: /anc JT | /anc Jungle Temple | /anc WP | /anc Waypoints"
 			+ " | /anc Clear all | /anc Clear waypoint <number>"
-			+ " | /anc Timer start | /anc Timer reset | /anc GUI"
+			+ " | /anc Timer start | /anc Timer reset | /anc GUI | /anc Tracker"
 			+ " | /anc Run <time> | /anc Stats reset";
 
 	private static final String TIMER_USAGE = "Usage: /anc Timer start | /anc Timer reset | /anc Timer move";
@@ -40,6 +40,7 @@ public final class CommandParser {
 		"Timer reset",
 		"Timer move",
 		"GUI",
+		"Tracker",
 		"Run 2 min",
 		"Stats reset"
 	);
@@ -61,6 +62,9 @@ public final class CommandParser {
 
 		/** Opens the screen where the GUIs are moved and hidden. */
 		record Gui() implements Action { }
+
+		/** Opens the Crystal Nucleus profit tracker screen. */
+		record Tracker() implements Action { }
 
 		/** A simulated finished run of this length, for testing. */
 		record RunTest(long nanos) implements Action { }
@@ -93,6 +97,9 @@ public final class CommandParser {
 		}
 		if (t.length == 1 && t[0].equals("gui")) {
 			return new Action.Gui();
+		}
+		if (t.length == 1 && t[0].equals("tracker")) {
+			return new Action.Tracker();
 		}
 		if (t[0].equals("clear")) {
 			return parseClear(t);

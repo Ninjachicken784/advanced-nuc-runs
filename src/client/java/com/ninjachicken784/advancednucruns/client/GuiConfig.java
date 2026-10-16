@@ -26,8 +26,12 @@ final class GuiConfig {
 	static final HudBox PB = new HudBox(HudBox.Kind.PB, "pb", false, 5, 51);
 	static final HudBox AVERAGE = new HudBox(HudBox.Kind.AVERAGE, "average", false, 5, 74);
 
+	/** The profit tracker panel. Text size 1 is the normal Minecraft size, so it starts smaller than the others. */
+	static final HudBox TRACKER = new HudBox(HudBox.Kind.TRACKER, "tracker", false, 5, 100, 1.0f);
+	static final HudBox METER = new HudBox(HudBox.Kind.METER, "meter", false, 5, 28, 1.5f);
+
 	/** Every box, in the order they are drawn. */
-	static final List<HudBox> ALL = List.of(TIMER, RUN_TIME, PB, AVERAGE);
+	static final List<HudBox> ALL = List.of(TIMER, RUN_TIME, PB, AVERAGE, TRACKER, METER);
 
 	private GuiConfig() { }
 

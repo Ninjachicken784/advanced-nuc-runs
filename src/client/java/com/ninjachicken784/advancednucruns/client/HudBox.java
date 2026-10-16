@@ -17,7 +17,11 @@ final class HudBox {
 		/** The fastest run. */
 		PB,
 		/** The average of this session's runs. */
-		AVERAGE
+		AVERAGE,
+		/** The Crystal Nucleus Profit Tracker panel. */
+		TRACKER,
+		/** The RNG meter: the selected drop's icon and its progress. */
+		METER
 	}
 
 	static final float DEFAULT_SCALE = 1.5f;
@@ -34,9 +38,14 @@ final class HudBox {
 	int y;
 	boolean hidden;
 	/** How big the text is drawn. 1 is the normal Minecraft text size. */
-	float scale = DEFAULT_SCALE;
+	float scale;
 
 	HudBox(Kind kind, String key, boolean centered, int defaultX, int defaultY) {
+		this(kind, key, centered, defaultX, defaultY, DEFAULT_SCALE);
+	}
+
+	HudBox(Kind kind, String key, boolean centered, int defaultX, int defaultY, float defaultScale) {
+		this.scale = defaultScale;
 		this.kind = kind;
 		this.key = key;
 		this.centered = centered;

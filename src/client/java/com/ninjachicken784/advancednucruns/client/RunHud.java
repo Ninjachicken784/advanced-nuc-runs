@@ -4,7 +4,10 @@ import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.resources.Identifier;
+
+import java.util.function.Supplier;
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
@@ -29,8 +32,8 @@ final class RunHud {
 	/** What one box says: for example label "PB" and value "1min 22sec". */
 	record Content(String label, String value) { }
 
-	/** Set by /anc GUI. The screen opens on the next tick, after the chat box has closed. */
-	private static volatile boolean openEditScreen;
+	/** Set by /anc GUI and /anc Tracker. The screen opens on the next tick, after the chat box has closed. */
+	private static volatile Supplier<Screen> pendingScreen;
 
 	private static volatile String popupLabel;
 	private static volatile long popupNanos;
@@ -46,7 +49,12 @@ final class RunHud {
 
 	/** Asks for the move screen to open as soon as no other screen (such as chat) is open. */
 	static void requestEditScreen() {
-		openEditScreen = true;
+		pendingScreen = GuiEditScreen::new;
+	}
+
+	/** Asks for the tracker screen to open the same way. */
+	static void requestTrackerScreen() {
+		pendingScreen = TrackerScreen::new;
 	}
 
 	/** Shows the popup with this label ("Run Time" or "PB") and run time for a few seconds. */
@@ -57,9 +65,10 @@ final class RunHud {
 	}
 
 	private static void tick(Minecraft client) {
-		if (openEditScreen && client.screen == null) {
-			openEditScreen = false;
-			client.setScreen(new GuiEditScreen());
+		Supplier<Screen> pending = pendingScreen;
+		if (pending != null && client.screen == null) {
+			pendingScreen = null;
+			client.setScreen(pending.get());
 		}
 	}
 
@@ -73,11 +82,19 @@ final class RunHud {
 			if (box.hidden) {
 				continue;
 			}
-			Content content = content(box, false);
-			if (content != null) {
-				draw(graphics, client.font, box, content, false);
+			if (visible(box, false)) {
+				draw(graphics, client.font, box, false, false);
 			}
 		}
+	}
+
+	/** False for a box with nothing to show: the popup between runs, or a meter not copied yet. */
+	static boolean visible(HudBox box, boolean preview) {
+		return switch (box.kind) {
+			case RUN_TIME -> content(box, preview) != null;
+			case METER -> MeterHud.visible(preview);
+			default -> true;
+		};
 	}
 
 	/**
@@ -100,6 +117,8 @@ final class RunHud {
 			}
 			case PB -> new Content("PB", valueOrDashes(stats.pbNanos()));
 			case AVERAGE -> new Content("Average", valueOrDashes(stats.averageNanos()));
+			// These two draw themselves and have no label and value.
+			case TRACKER, METER -> null;
 		};
 	}
 
@@ -107,25 +126,42 @@ final class RunHud {
 		return nanos < 0L ? "--" : RunTimer.formatShort(nanos);
 	}
 
-	static int width(Font font, HudBox box, Content content) {
-		return HudText.width(font, content.label(), content.value(), box.scale);
+	static int width(Font font, HudBox box, boolean preview) {
+		return switch (box.kind) {
+			case TRACKER -> TrackerHud.width(font, box, preview);
+			case METER -> MeterHud.width(font, box, preview);
+			default -> HudText.width(font, content(box, true).label(), content(box, true).value(), box.scale);
+		};
 	}
 
-	static int height(Font font, HudBox box) {
-		return HudText.height(font, box.scale);
+	static int height(Font font, HudBox box, boolean preview) {
+		return switch (box.kind) {
+			case TRACKER -> TrackerHud.height(font, box, preview);
+			case METER -> MeterHud.height(font, box, preview);
+			default -> HudText.height(font, box.scale);
+		};
 	}
 
-	static boolean contains(HudBox box, Content content, Font font, int mouseX, int mouseY) {
-		return box.contains(width(font, box, content), height(font, box), mouseX, mouseY);
+	static boolean contains(HudBox box, Font font, int mouseX, int mouseY) {
+		return box.contains(width(font, box, true), height(font, box, true), mouseX, mouseY);
 	}
 
 	/** Draws one box, keeping it on screen, for example after the window was made smaller. */
-	static void draw(GuiGraphicsExtractor graphics, Font font, HudBox box, Content content, boolean dim) {
-		int width = width(font, box, content);
-		int height = height(font, box);
-		box.keepOnScreen(width, height, graphics.guiWidth(), graphics.guiHeight());
-
-		HudText.draw(graphics, font, content.label(), content.value(), box.left(width), box.y, box.scale,
-			dim ? HudText.LABEL_DIM : HudText.LABEL, dim ? HudText.VALUE_DIM : HudText.VALUE);
+	static void draw(GuiGraphicsExtractor graphics, Font font, HudBox box, boolean dim, boolean preview) {
+		switch (box.kind) {
+			case TRACKER -> TrackerHud.draw(graphics, font, box, dim, preview);
+			case METER -> MeterHud.draw(graphics, font, box, dim, preview);
+			default -> {
+				Content content = content(box, preview);
+				if (content == null) {
+					return;
+				}
+				int width = HudText.width(font, content.label(), content.value(), box.scale);
+				int height = HudText.height(font, box.scale);
+				box.keepOnScreen(width, height, graphics.guiWidth(), graphics.guiHeight());
+				HudText.draw(graphics, font, content.label(), content.value(), box.left(width), box.y, box.scale,
+					dim ? HudText.LABEL_DIM : HudText.LABEL, dim ? HudText.VALUE_DIM : HudText.VALUE);
+			}
+		}
 	}
 }

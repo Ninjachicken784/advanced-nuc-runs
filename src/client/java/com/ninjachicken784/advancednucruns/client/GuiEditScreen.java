@@ -40,9 +40,8 @@ final class GuiEditScreen extends Screen {
 		}
 
 		for (HudBox box : GuiConfig.ALL) {
-			RunHud.Content content = RunHud.content(box, true);
-			RunHud.draw(graphics, this.font, box, content, box.hidden);
-			frame(graphics, box, content, box.hidden ? RED : WHITE);
+			RunHud.draw(graphics, this.font, box, box.hidden, true);
+			frame(graphics, box, box.hidden ? RED : WHITE);
 		}
 
 		int centerX = graphics.guiWidth() / 2;
@@ -52,9 +51,9 @@ final class GuiEditScreen extends Screen {
 	}
 
 	/** A thin frame around a box so it is easy to see and grab. */
-	private void frame(GuiGraphicsExtractor graphics, HudBox box, RunHud.Content content, int color) {
-		int width = RunHud.width(this.font, box, content);
-		int height = RunHud.height(this.font, box);
+	private void frame(GuiGraphicsExtractor graphics, HudBox box, int color) {
+		int width = RunHud.width(this.font, box, true);
+		int height = RunHud.height(this.font, box, true);
 		int left = box.left(width);
 		graphics.fill(left - 1, box.y - 1, left + width + 1, box.y, color);
 		graphics.fill(left - 1, box.y + height, left + width + 1, box.y + height + 1, color);
@@ -66,7 +65,7 @@ final class GuiEditScreen extends Screen {
 	private HudBox boxAt(int mouseX, int mouseY) {
 		for (int i = GuiConfig.ALL.size() - 1; i >= 0; i--) {
 			HudBox box = GuiConfig.ALL.get(i);
-			if (RunHud.contains(box, RunHud.content(box, true), this.font, mouseX, mouseY)) {
+			if (RunHud.contains(box, this.font, mouseX, mouseY)) {
 				return box;
 			}
 		}

@@ -74,6 +74,8 @@ final class AncCommand {
 			source.sendFeedback(Component.literal("Run timer reset."));
 		} else if (action instanceof CommandParser.Action.TimerMove || action instanceof CommandParser.Action.Gui) {
 			RunHud.requestEditScreen();
+		} else if (action instanceof CommandParser.Action.Tracker) {
+			RunHud.requestTrackerScreen();
 		} else if (action instanceof CommandParser.Action.RunTest runTest) {
 			// A simulated run. It goes through the same steps as a real one, but leaves the live timer alone.
 			RunResults.finished(runTest.nanos(), true);

@@ -4,6 +4,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents;
 
 import com.ninjachicken784.advancednucruns.RunTimer;
@@ -16,9 +17,18 @@ final class RunChatListener {
 	private RunChatListener() { }
 
 	static void register() {
+		// Ends a loot bundle that no line followed, so its drops are counted.
+		ClientTickEvents.END_CLIENT_TICK.register(client ->
+			AdvancedNucRunsClient.ENGINE.tick(AdvancedNucRunsClient.nowMillis()));
+
 		// Hypixel sends these lines as game messages, which players cannot fake from chat.
 		ClientReceiveMessageEvents.GAME.register((message, overlay) -> {
-			if (overlay || !RunTimer.isFinishMessage(message.getString())) {
+			if (overlay) {
+				return;
+			}
+			// The tracker and the RNG meter read the whole loot bundle, line by line.
+			AdvancedNucRunsClient.ENGINE.onMessage(message.getString(), AdvancedNucRunsClient.nowMillis());
+			if (!RunTimer.isFinishMessage(message.getString())) {
 				return;
 			}
 

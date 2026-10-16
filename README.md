@@ -17,6 +17,7 @@ Upper and lower case do not matter. Tab completion works.
 | `/anc Timer start` | Starts the clock by hand, or restarts the current run |
 | `/anc Timer reset` | Stops and clears the clock. The next finish starts it again |
 | `/anc GUI` | Opens a screen where you move, resize and hide the on-screen boxes. `/anc Timer move` opens the same screen |
+| `/anc Tracker` | Opens the profit tracker screen: every drop and the run count (editable) plus the tracker settings |
 | `/anc Run <time>` | Test command: acts as if you just finished a run of that length. Example: `/anc Run 2 min` or `/anc Run 1 min 30 sec` |
 | `/anc Stats reset` | Clears your saved PB and this session's average |
 
@@ -55,6 +56,26 @@ Times on screen are shown as minutes and seconds, like `1min 22sec`.
 - The Run Time / PB popup is centered on its spot, so the text stays lined up in the middle when it changes between `Run Time` and `PB` or the time gets longer or shorter.
 - Positions, sizes, hidden boxes and the PB are saved in `config/advanced_nuc_runs.properties`.
 - To try it without doing a run, use `/anc Run 2 min`. Test runs count as real runs for the PB and average, so use `/anc Stats reset` to clear them afterwards. A test run does not touch the Timer box.
+
+### Crystal Nucleus Profit Tracker
+
+A panel (box `Tracker` in `/anc GUI`) that counts every drop from the loot bundle in chat, including drops the mod has never seen before.
+
+- Shows the best drops by value as `1X Name value` (3 by default, 3 to 20 in the tracker screen), then `Cost`, `Profit`, `Profit Per Run`, `Runs` and `Timer`.
+- Item names are blue, Jaderald is purple and Jade Dye is green.
+- Profit = value of all drops - runs x (Precursor Apparatus + Goblin Egg + Jungle Key).
+- Prices come from the game: the Bazaar (sell offer by default, or instant sell) and the lowest BIN for everything else. They refresh every 5 minutes, and with `Refresh prices` in the tracker screen.
+- The last row has two buttons you can click, also while the chat is open: `Total` / `Session` switches between everything ever tracked and this game session, and `Pause` / `Resume` stops the timer. The timer also pauses by itself after 5 minutes without a run.
+- `/anc Tracker` opens the tracker screen. Scroll the list of drops. Click a number to type a new one, or use `+` and `-` (Shift = 10, Ctrl = 100). Settings: Pity, price mode, rows on screen, view, timer pause, refresh prices, reset session, reset everything.
+- Saved in `config/advanced_nuc_runs_tracker.properties`.
+
+### RNG meter
+
+A box (`Meter` in `/anc GUI`) showing the selected drop's icon and its progress, for example `320.3k/1m`.
+
+- Open the in-game `Crystal Nucleus RNG Meter` menu once: the mod copies your stored XP and the selected drop from it. The icon is copied from the menu too, so open it once after each game start.
+- After that every run adds 1,000 XP (1,100 with Pity on in the tracker screen), and the XP goes back to 0 when the selected drop drops.
+- Nothing is shown until the menu has been opened once.
 
 ### Notes
 
