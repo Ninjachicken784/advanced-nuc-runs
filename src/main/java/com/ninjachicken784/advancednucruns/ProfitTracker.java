@@ -217,6 +217,36 @@ public final class ProfitTracker {
 		rows = Math.max(MIN_ROWS, Math.min(MAX_ROWS, count));
 	}
 
+	/** Takes over the price mode, the number of rows and Pity from another tracker. */
+	public void copySettingsFrom(ProfitTracker other) {
+		boolean otherPity = other.pity();
+		PriceBook.Mode otherMode = other.priceMode();
+		int otherRows = other.rows();
+		synchronized (this) {
+			pity = otherPity;
+			mode = otherMode;
+			rows = otherRows;
+		}
+	}
+
+	/** True if nothing was counted: no runs and no drops. */
+	public synchronized boolean isEmpty() {
+		if (runs(false) > 0L) {
+			return false;
+		}
+		for (long value : baseCounts.values()) {
+			if (value > 0L) {
+				return false;
+			}
+		}
+		for (long value : sessionCounts.values()) {
+			if (value > 0L) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	// ---- value and profit
 
 	/** What one run costs: one of each of the three items it uses. Unknown prices count as 0. */

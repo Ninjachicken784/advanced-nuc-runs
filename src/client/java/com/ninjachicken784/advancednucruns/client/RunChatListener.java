@@ -18,16 +18,22 @@ final class RunChatListener {
 
 	static void register() {
 		// Ends a loot bundle that no line followed, so its drops are counted.
-		ClientTickEvents.END_CLIENT_TICK.register(client ->
-			AdvancedNucRunsClient.ENGINE.tick(AdvancedNucRunsClient.nowMillis()));
+		ClientTickEvents.END_CLIENT_TICK.register(client -> {
+			if (HudVisibility.trackerOn()) {
+				AdvancedNucRunsClient.ENGINE.tick(AdvancedNucRunsClient.nowMillis());
+			}
+		});
 
 		// Hypixel sends these lines as game messages, which players cannot fake from chat.
 		ClientReceiveMessageEvents.GAME.register((message, overlay) -> {
-			if (overlay) {
+			// Switched off from the /anc menu: nothing is counted or timed.
+			if (overlay || !HudVisibility.modOn()) {
 				return;
 			}
 			// The tracker and the RNG meter read the whole loot bundle, line by line.
-			AdvancedNucRunsClient.ENGINE.onMessage(message.getString(), AdvancedNucRunsClient.nowMillis());
+			if (HudVisibility.trackerOn()) {
+				AdvancedNucRunsClient.ENGINE.onMessage(message.getString(), AdvancedNucRunsClient.nowMillis());
+			}
 			if (!RunTimer.isFinishMessage(message.getString())) {
 				return;
 			}

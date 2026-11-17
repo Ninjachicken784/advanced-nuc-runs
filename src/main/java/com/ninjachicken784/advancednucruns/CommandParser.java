@@ -30,6 +30,7 @@ public final class CommandParser {
 
 	/** Full command texts offered for tab completion. */
 	public static final List<String> SUGGESTIONS = List.of(
+		"Menu",
 		"Jungle Temple",
 		"JT",
 		"Waypoints",
@@ -41,6 +42,7 @@ public final class CommandParser {
 		"Timer move",
 		"GUI",
 		"Tracker",
+		"Session reset",
 		"Run 2 min",
 		"Stats reset"
 	);
@@ -66,6 +68,12 @@ public final class CommandParser {
 		/** Opens the Crystal Nucleus profit tracker screen. */
 		record Tracker() implements Action { }
 
+		/** Opens the /anc menu. */
+		record Menu() implements Action { }
+
+		/** Saves the session tracker to the history and starts it again from zero. */
+		record SessionReset() implements Action { }
+
 		/** A simulated finished run of this length, for testing. */
 		record RunTest(long nanos) implements Action { }
 
@@ -80,7 +88,7 @@ public final class CommandParser {
 	public static Action parse(String input) {
 		String trimmed = input == null ? "" : input.trim();
 		if (trimmed.isEmpty()) {
-			return new Action.Invalid(USAGE);
+			return new Action.Menu();
 		}
 
 		String lower = trimmed.toLowerCase(Locale.ROOT);
@@ -100,6 +108,15 @@ public final class CommandParser {
 		}
 		if (t.length == 1 && t[0].equals("tracker")) {
 			return new Action.Tracker();
+		}
+		if (t.length == 1 && t[0].equals("menu")) {
+			return new Action.Menu();
+		}
+		if (t.length == 1 && t[0].equals("help")) {
+			return new Action.Invalid(USAGE);
+		}
+		if (t.length == 2 && t[0].equals("session") && t[1].equals("reset")) {
+			return new Action.SessionReset();
 		}
 		if (t[0].equals("clear")) {
 			return parseClear(t);

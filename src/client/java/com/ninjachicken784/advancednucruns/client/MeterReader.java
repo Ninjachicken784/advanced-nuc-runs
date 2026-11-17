@@ -48,6 +48,9 @@ final class MeterReader {
 	}
 
 	private static void tick(Minecraft client) {
+		if (!HudVisibility.trackerOn()) {
+			return;
+		}
 		if (!(client.screen instanceof AbstractContainerScreen<?> screen)
 			|| !MeterMenuReader.isMeterTitle(screen.getTitle().getString())) {
 			return;

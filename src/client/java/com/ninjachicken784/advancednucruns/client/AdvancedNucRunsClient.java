@@ -1,14 +1,21 @@
 package com.ninjachicken784.advancednucruns.client;
 
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
+
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 
 import com.ninjachicken784.advancednucruns.AdvancedNucRuns;
+import com.ninjachicken784.advancednucruns.LastDrops;
+import com.ninjachicken784.advancednucruns.ModSettings;
 import com.ninjachicken784.advancednucruns.PriceBook;
 import com.ninjachicken784.advancednucruns.ProfitTracker;
 import com.ninjachicken784.advancednucruns.RngMeter;
 import com.ninjachicken784.advancednucruns.RunStats;
 import com.ninjachicken784.advancednucruns.RunTimer;
+import com.ninjachicken784.advancednucruns.SessionHistory;
 import com.ninjachicken784.advancednucruns.TrackerEngine;
 import com.ninjachicken784.advancednucruns.WaypointStore;
 
@@ -31,8 +38,32 @@ public class AdvancedNucRunsClient implements ClientModInitializer {
 	/** The latest Bazaar and lowest BIN prices. */
 	public static final PriceBook PRICES = new PriceBook();
 
-	/** Reads the loot bundle out of chat and feeds the tracker and the meter. */
-	public static final TrackerEngine ENGINE = new TrackerEngine(TRACKER, METER, TrackerStore::save);
+	/**
+	 * The session tracker: counts the same drops and runs as {@link #TRACKER}, but starts again from
+	 * zero whenever the player resets it. Every reset is kept in {@link #SESSION_HISTORY}.
+	 */
+	public static final ProfitTracker SESSION_TRACKER = new ProfitTracker();
+
+	/** Every session that was reset, newest first. */
+	public static final SessionHistory SESSION_HISTORY = new SessionHistory();
+
+	/** When Alloy, Quick Claw and Jade Dye last dropped, in runs. */
+	public static final LastDrops LAST_DROPS = new LastDrops();
+
+	/** The on/off switches from the /anc menu. */
+	public static final ModSettings SETTINGS = new ModSettings();
+
+	/** Reads the loot bundle out of chat and feeds the trackers and the meter. */
+	public static final TrackerEngine ENGINE = new TrackerEngine(TRACKER, SESSION_TRACKER, METER, LAST_DROPS,
+		TrackerStore::save, AdvancedNucRunsClient::chatNotice);
+
+	/** Prints a line in the player's own chat, for example "Last Alloy: 552 runs ago". */
+	static void chatNotice(String text) {
+		Minecraft client = Minecraft.getInstance();
+		if (client.player != null) {
+			client.player.sendSystemMessage(Component.literal(text).withStyle(ChatFormatting.AQUA));
+		}
+	}
 
 	/** A clock that only goes forward, in milliseconds. */
 	static long nowMillis() {
@@ -49,6 +80,7 @@ public class AdvancedNucRunsClient implements ClientModInitializer {
 
 		WaypointRenderer.register();
 		RunHud.register();
+		HudVisibility.register();
 		RunChatListener.register();
 		TrackerStore.register();
 		PriceService.register();

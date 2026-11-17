@@ -21,7 +21,9 @@ final class HudBox {
 		/** The Crystal Nucleus Profit Tracker panel. */
 		TRACKER,
 		/** The RNG meter: the selected drop's icon and its progress. */
-		METER
+		METER,
+		/** The session tracker panel, which has a Reset button. */
+		SESSION
 	}
 
 	static final float DEFAULT_SCALE = 1.5f;

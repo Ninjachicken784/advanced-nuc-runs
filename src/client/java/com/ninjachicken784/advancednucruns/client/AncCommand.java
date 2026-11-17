@@ -76,6 +76,10 @@ final class AncCommand {
 			RunHud.requestEditScreen();
 		} else if (action instanceof CommandParser.Action.Tracker) {
 			RunHud.requestTrackerScreen();
+		} else if (action instanceof CommandParser.Action.Menu) {
+			RunHud.requestMenuScreen();
+		} else if (action instanceof CommandParser.Action.SessionReset) {
+			SessionActions.reset();
 		} else if (action instanceof CommandParser.Action.RunTest runTest) {
 			// A simulated run. It goes through the same steps as a real one, but leaves the live timer alone.
 			RunResults.finished(runTest.nanos(), true);

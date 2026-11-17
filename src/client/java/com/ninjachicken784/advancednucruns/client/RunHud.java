@@ -32,7 +32,7 @@ final class RunHud {
 	/** What one box says: for example label "PB" and value "1min 22sec". */
 	record Content(String label, String value) { }
 
-	/** Set by /anc GUI and /anc Tracker. The screen opens on the next tick, after the chat box has closed. */
+	/** Set by /anc GUI, /anc Tracker and /anc. The screen opens on the next tick, after the chat box has closed. */
 	private static volatile Supplier<Screen> pendingScreen;
 
 	private static volatile String popupLabel;
@@ -49,12 +49,17 @@ final class RunHud {
 
 	/** Asks for the move screen to open as soon as no other screen (such as chat) is open. */
 	static void requestEditScreen() {
-		pendingScreen = GuiEditScreen::new;
+		pendingScreen = () -> new GuiEditScreen(null);
 	}
 
 	/** Asks for the tracker screen to open the same way. */
 	static void requestTrackerScreen() {
-		pendingScreen = TrackerScreen::new;
+		pendingScreen = () -> new TrackerScreen(null);
+	}
+
+	/** Asks for the /anc menu to open the same way. */
+	static void requestMenuScreen() {
+		pendingScreen = MenuScreen::new;
 	}
 
 	/** Shows the popup with this label ("Run Time" or "PB") and run time for a few seconds. */
@@ -79,7 +84,7 @@ final class RunHud {
 			return;
 		}
 		for (HudBox box : GuiConfig.ALL) {
-			if (box.hidden) {
+			if (box.hidden || !HudVisibility.shown(box)) {
 				continue;
 			}
 			if (visible(box, false)) {
@@ -118,7 +123,7 @@ final class RunHud {
 			case PB -> new Content("PB", valueOrDashes(stats.pbNanos()));
 			case AVERAGE -> new Content("Average", valueOrDashes(stats.averageNanos()));
 			// These two draw themselves and have no label and value.
-			case TRACKER, METER -> null;
+			case TRACKER, SESSION, METER -> null;
 		};
 	}
 
@@ -128,7 +133,7 @@ final class RunHud {
 
 	static int width(Font font, HudBox box, boolean preview) {
 		return switch (box.kind) {
-			case TRACKER -> TrackerHud.width(font, box, preview);
+			case TRACKER, SESSION -> TrackerHud.width(font, box, preview);
 			case METER -> MeterHud.width(font, box, preview);
 			default -> HudText.width(font, content(box, true).label(), content(box, true).value(), box.scale);
 		};
@@ -136,7 +141,7 @@ final class RunHud {
 
 	static int height(Font font, HudBox box, boolean preview) {
 		return switch (box.kind) {
-			case TRACKER -> TrackerHud.height(font, box, preview);
+			case TRACKER, SESSION -> TrackerHud.height(font, box, preview);
 			case METER -> MeterHud.height(font, box, preview);
 			default -> HudText.height(font, box.scale);
 		};
@@ -149,7 +154,7 @@ final class RunHud {
 	/** Draws one box, keeping it on screen, for example after the window was made smaller. */
 	static void draw(GuiGraphicsExtractor graphics, Font font, HudBox box, boolean dim, boolean preview) {
 		switch (box.kind) {
-			case TRACKER -> TrackerHud.draw(graphics, font, box, dim, preview);
+			case TRACKER, SESSION -> TrackerHud.draw(graphics, font, box, dim, preview);
 			case METER -> MeterHud.draw(graphics, font, box, dim, preview);
 			default -> {
 				Content content = content(box, preview);

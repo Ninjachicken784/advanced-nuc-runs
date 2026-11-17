@@ -39,6 +39,8 @@ final class PriceService {
 	private static final long REFRESH_MILLIS = 5 * 60_000L;
 	/** Scanning every auction is heavy, so it is only done for drops that still have no price, and not often. */
 	private static final long SCAN_EVERY_MILLIS = 15 * 60_000L;
+	/** A drop that has never had a price is looked up again sooner. */
+	private static final long RETRY_SCAN_EVERY_MILLIS = 3 * 60_000L;
 	private static final int MAX_AUCTION_PAGES = 150;
 
 	private static final HttpClient HTTP = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
@@ -52,7 +54,8 @@ final class PriceService {
 
 	static void register() {
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
-			if (AdvancedNucRunsClient.nowMillis() - lastAttempt >= REFRESH_MILLIS) {
+			// Nothing is downloaded while the mod or the tracker is switched off.
+			if (HudVisibility.trackerOn() && AdvancedNucRunsClient.nowMillis() - lastAttempt >= REFRESH_MILLIS) {
 				refresh();
 			}
 		});
@@ -76,6 +79,18 @@ final class PriceService {
 	}
 
 	private static void download() {
+		try {
+			downloadAll();
+		} catch (RuntimeException e) {
+			status = "Prices: update failed";
+			AdvancedNucRuns.LOGGER.warn("The price update failed", e);
+		} finally {
+			// Always allow the next update, whatever went wrong.
+			BUSY.set(false);
+		}
+	}
+
+	private static void downloadAll() {
 		StringBuilder problems = new StringBuilder();
 		try {
 			AdvancedNucRunsClient.PRICES.setBazaar(PriceFeed.parseBazaar(get(BAZAAR)));
@@ -103,16 +118,17 @@ final class PriceService {
 			AdvancedNucRuns.LOGGER.warn("Could not load the item names", e);
 		}
 
-		// Drops that still have no price (a wrong item id, or the BIN list is down) are looked up
-		// directly in the Auction House by their name.
+		// Drops that no list has a price for (a wrong item id, or the BIN list is down) are looked up
+		// directly in the Auction House by their name. What a scan finds is added to what earlier scans
+		// found, so a price stays until a newer one replaces it.
 		boolean scanned = false;
 		try {
-			Set<String> missing = unpricedNames();
+			Set<String> missing = unlistedNames();
 			if (!missing.isEmpty() && AdvancedNucRunsClient.PRICES.hasBazaar()
-				&& AdvancedNucRunsClient.nowMillis() - lastScan >= SCAN_EVERY_MILLIS) {
+				&& AdvancedNucRunsClient.nowMillis() - lastScan >= (unpricedCount() > 0 ? RETRY_SCAN_EVERY_MILLIS : SCAN_EVERY_MILLIS)) {
 				status = "Scanning the Auction House...";
 				lastScan = AdvancedNucRunsClient.nowMillis();
-				AdvancedNucRunsClient.PRICES.setNameBins(scanAuctions(missing));
+				AdvancedNucRunsClient.PRICES.addNameBins(scanAuctions(missing));
 				scanned = true;
 			}
 		} catch (Exception e) {
@@ -121,27 +137,46 @@ final class PriceService {
 		}
 
 		String base = problems.length() == 0 ? "Prices updated" : "Prices:" + problems;
-		int stillMissing = unpricedNames().size();
+		int stillMissing = unpricedCount();
 		status = base + (scanned ? " (auction scan)" : "") + (stillMissing > 0 ? ", " + stillMissing + " unpriced" : "");
-		BUSY.set(false);
+		// Keep the new prices on disk, so they are there right away the next time the game starts.
+		TrackerStore.save();
 	}
 
-	/** Normalized names of the drops that have no price right now. */
-	private static Set<String> unpricedNames() {
+	/** Normalized names of the drops that no price list has a price for, so they must be looked up in the Auction House. */
+	private static Set<String> unlistedNames() {
 		PriceBook prices = AdvancedNucRunsClient.PRICES;
 		PriceBook.Mode mode = AdvancedNucRunsClient.TRACKER.priceMode();
 		Set<String> missing = new HashSet<>();
 		for (NucleusItems.Item item : NucleusItems.ALL) {
-			if (Double.isNaN(prices.price(item, mode))) {
+			if (Double.isNaN(prices.listedPrice(item, mode))) {
 				missing.add(NucleusItems.normalize(item.name()));
 			}
 		}
 		for (String name : AdvancedNucRunsClient.TRACKER.customDrops().values()) {
-			if (Double.isNaN(prices.priceByName(name, mode))) {
+			if (Double.isNaN(prices.listedPriceByName(name, mode))) {
 				missing.add(NucleusItems.normalize(name));
 			}
 		}
 		return missing;
+	}
+
+	/** How many drops have no price at all right now, not even a remembered one. */
+	private static int unpricedCount() {
+		PriceBook prices = AdvancedNucRunsClient.PRICES;
+		PriceBook.Mode mode = AdvancedNucRunsClient.TRACKER.priceMode();
+		int count = 0;
+		for (NucleusItems.Item item : NucleusItems.ALL) {
+			if (Double.isNaN(prices.price(item, mode))) {
+				count++;
+			}
+		}
+		for (String name : AdvancedNucRunsClient.TRACKER.customDrops().values()) {
+			if (Double.isNaN(prices.priceByName(name, mode))) {
+				count++;
+			}
+		}
+		return count;
 	}
 
 	/** The lowest BIN of each wanted name, found by reading every page of the Auction House. */

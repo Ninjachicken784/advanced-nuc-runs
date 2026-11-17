@@ -31,7 +31,7 @@ final class WaypointRenderer {
 
 	private static void render(LevelRenderContext context) {
 		Minecraft client = Minecraft.getInstance();
-		if (client.player == null) {
+		if (client.player == null || !HudVisibility.modOn()) {
 			return;
 		}
 

@@ -10,6 +10,7 @@ Upper and lower case do not matter. Tab completion works.
 
 | Command | What it does |
 | --- | --- |
+| `/anc` or `/anc Menu` | Opens the menu: turn the mod, the tracker and the GUI on or off, choose where they show, open the tracker and the GUI mover, and see the session history |
 | `/anc Jungle Temple` or `/anc JT` | Sets 3 waypoints, offset from the block you stand in |
 | `/anc Waypoints` or `/anc WP` | Sets 1 waypoint on the block you stand in |
 | `/anc Clear all` | Removes every waypoint |
@@ -18,6 +19,7 @@ Upper and lower case do not matter. Tab completion works.
 | `/anc Timer reset` | Stops and clears the clock. The next finish starts it again |
 | `/anc GUI` | Opens a screen where you move, resize and hide the on-screen boxes. `/anc Timer move` opens the same screen |
 | `/anc Tracker` | Opens the profit tracker screen: every drop and the run count (editable) plus the tracker settings |
+| `/anc Session reset` | Saves the session tracker to the history and starts it again from zero (same as its Reset button) |
 | `/anc Run <time>` | Test command: acts as if you just finished a run of that length. Example: `/anc Run 2 min` or `/anc Run 1 min 30 sec` |
 | `/anc Stats reset` | Clears your saved PB and this session's average |
 
@@ -68,6 +70,34 @@ A panel (box `Tracker` in `/anc GUI`) that counts every drop from the loot bundl
 - The last row has two buttons you can click, also while the chat is open: `Total` / `Session` switches between everything ever tracked and this game session, and `Pause` / `Resume` stops the timer. The timer also pauses by itself after 5 minutes without a run.
 - `/anc Tracker` opens the tracker screen. Scroll the list of drops. Click a number to type a new one, or use `+` and `-` (Shift = 10, Ctrl = 100). Settings: Pity, price mode, rows on screen, view, timer pause, refresh prices, reset session, reset everything.
 - Saved in `config/advanced_nuc_runs_tracker.properties`.
+
+- Prices that were found once are kept: if a list is down, or one Auction House scan misses an item (Divan's Alloy and Quick Claw are only priced from the Auction House), the last price stays on screen instead of turning into `?`. They are saved, so they are also there right after the game starts.
+
+### Session tracker
+
+A second panel (box `Session` in `/anc GUI`) that looks like the Crystal Nucleus Profit Tracker, but its last row says `Session` and has a `Reset` button next to `Pause`. It counts the same drops and runs, but only since you last reset it, and it keeps its numbers between game starts. Use it for "how much did I make today" or "in these 100 runs".
+
+- Click `Reset` (also works while the chat is open) or use `/anc Session reset`. The numbers are saved to the history first, then the panel starts again from zero. An empty session is not saved.
+- The history is in the menu, tab `History`: every reset with its date and runs. Click one to see `In these 225 runs you got:` with every drop, the cost, profit, profit per run, runs and timer, valued with the prices at the moment of the reset. `Delete this entry` removes one.
+- It uses the same price mode and rows setting as the normal tracker.
+- Saved in `config/advanced_nuc_runs_session.properties` and `config/advanced_nuc_runs_history.properties`.
+
+### Last Alloy, Quick Claw and Jade Dye
+
+When Divan's Alloy, a Quick Claw or a Jade Dye drops, the chat says how many runs ago the one before it dropped, for example `Last Alloy: 552 runs ago`. The first one the mod sees says `Alloy: first one tracked`. The mod has its own run counter for this, so editing the run count in the tracker screen does not change it.
+
+### Menu
+
+`/anc` opens the menu. Tabs on the left, the settings of the open tab on the right.
+
+| Tab | Settings |
+| --- | --- |
+| General | `Mod` on/off (off turns off the boxes, the tracker, waypoints and the timer; only `/anc` still works). `Show tracker and GUI`: `Always` or `Crystal Hollows only` (read from the `Area:` line of the tab list) |
+| Tracker | `Tracker` on/off (off: nothing is counted and the panels and the RNG meter are hidden). Show or hide the Total panel and the Session panel. `Open Tracker` |
+| GUI | `GUI` on/off (the Timer, Run Time, PB and Average boxes). `Change GUI` opens the screen where you move, resize and hide the boxes |
+| History | The reset sessions, see above. `Reset session now` |
+
+The switches are saved in `config/advanced_nuc_runs.properties`.
 
 ### RNG meter
 

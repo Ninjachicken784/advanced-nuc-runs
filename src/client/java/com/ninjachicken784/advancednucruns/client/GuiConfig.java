@@ -29,9 +29,11 @@ final class GuiConfig {
 	/** The profit tracker panel. Text size 1 is the normal Minecraft size, so it starts smaller than the others. */
 	static final HudBox TRACKER = new HudBox(HudBox.Kind.TRACKER, "tracker", false, 5, 100, 1.0f);
 	static final HudBox METER = new HudBox(HudBox.Kind.METER, "meter", false, 5, 28, 1.5f);
+	/** The session tracker panel, next to the normal one. */
+	static final HudBox SESSION = new HudBox(HudBox.Kind.SESSION, "session", false, 190, 100, 1.0f);
 
 	/** Every box, in the order they are drawn. */
-	static final List<HudBox> ALL = List.of(TIMER, RUN_TIME, PB, AVERAGE, TRACKER, METER);
+	static final List<HudBox> ALL = List.of(TIMER, RUN_TIME, PB, AVERAGE, TRACKER, METER, SESSION);
 
 	private GuiConfig() { }
 
@@ -70,6 +72,8 @@ final class GuiConfig {
 				}
 			}
 
+			AdvancedNucRunsClient.SETTINGS.load(properties);
+
 			String pb = properties.getProperty(PB_KEY);
 			if (pb != null) {
 				AdvancedNucRunsClient.RUN_STATS.restorePb(Long.parseLong(pb.trim()));
@@ -87,6 +91,7 @@ final class GuiConfig {
 			properties.setProperty(box.key + ".hidden", String.valueOf(box.hidden));
 			properties.setProperty(box.key + ".scale", String.valueOf(box.scale));
 		}
+		AdvancedNucRunsClient.SETTINGS.save(properties);
 		long pb = AdvancedNucRunsClient.RUN_STATS.pbNanos();
 		if (pb > 0L) {
 			properties.setProperty(PB_KEY, String.valueOf(pb));

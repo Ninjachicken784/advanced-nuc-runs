@@ -1,5 +1,6 @@
 package com.ninjachicken784.advancednucruns.client;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -23,8 +24,12 @@ final class GuiEditScreen extends Screen {
 	private int lastMouseX;
 	private int lastMouseY;
 
-	GuiEditScreen() {
+	/** The screen to go back to when this one is closed (the /anc menu), or null for the game. */
+	private final Screen parent;
+
+	GuiEditScreen(Screen parent) {
 		super(Component.literal("Move GUIs"));
+		this.parent = parent;
 	}
 
 	@Override
@@ -111,6 +116,6 @@ final class GuiEditScreen extends Screen {
 	@Override
 	public void onClose() {
 		GuiConfig.save();
-		super.onClose();
+		Minecraft.getInstance().setScreen(parent);
 	}
 }

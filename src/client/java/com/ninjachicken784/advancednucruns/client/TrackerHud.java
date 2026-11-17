@@ -44,10 +44,25 @@ final class TrackerHud {
 		}
 	}
 
-	/** The panel at text size 1: what to draw where, how big it is and where the buttons are. */
-	private record Layout(List<Seg> segments, int width, int height, Zone toggle, Zone pause) { }
+	/**
+	 * The panel at text size 1: what to draw where, how big it is and where the buttons are. The
+	 * total panel has a "Total / Session" toggle (and no reset); the session panel has a "Reset"
+	 * button instead. A button that the panel does not have is null.
+	 */
+	private record Layout(List<Seg> segments, int width, int height, Zone toggle, Zone reset, Zone pause) { }
+
+	/** The two panels: the all-time tracker and the session tracker that is reset by hand. */
+	private enum Panel { TOTAL, SESSION }
 
 	private TrackerHud() { }
+
+	private static Panel panelOf(HudBox box) {
+		return box.kind == HudBox.Kind.SESSION ? Panel.SESSION : Panel.TOTAL;
+	}
+
+	private static ProfitTracker trackerOf(Panel panel) {
+		return panel == Panel.SESSION ? AdvancedNucRunsClient.SESSION_TRACKER : AdvancedNucRunsClient.TRACKER;
+	}
 
 	static int styleColor(NucleusItems.Style style) {
 		return switch (style) {
@@ -57,11 +72,16 @@ final class TrackerHud {
 		};
 	}
 
-	private static Layout layout(Font font, boolean preview) {
-		ProfitTracker tracker = AdvancedNucRunsClient.TRACKER;
+	private static Layout layout(Font font, boolean preview, Panel panel) {
+		ProfitTracker tracker = trackerOf(panel);
+		if (panel == Panel.SESSION) {
+			// The session tracker uses the same price mode and number of rows as the main one.
+			tracker.copySettingsFrom(AdvancedNucRunsClient.TRACKER);
+		}
 		PriceBook prices = AdvancedNucRunsClient.PRICES;
 		long now = AdvancedNucRunsClient.nowMillis();
-		boolean session = tracker.sessionView();
+		// The session panel always shows everything its own tracker counted since its last reset.
+		boolean session = panel == Panel.TOTAL && tracker.sessionView();
 
 		List<ProfitTracker.Row> rows = tracker.topRows(prices, session);
 		String cost;
@@ -111,7 +131,8 @@ final class TrackerHud {
 		lines.add(List.of(new Part("Runs: ", WHITE), new Part(runs, WHITE)));
 		lines.add(List.of(new Part("Timer: ", WHITE), new Part(timer, WHITE)));
 
-		String toggleText = session ? "Session" : "Total";
+		String toggleText = panel == Panel.SESSION ? "Session" : (session ? "Session" : "Total");
+		String resetText = "Reset";
 		String pauseText = paused ? "Resume" : "Pause";
 
 		int lineHeight = font.lineHeight + 2;
@@ -123,7 +144,11 @@ final class TrackerHud {
 			}
 			contentWidth = Math.max(contentWidth, w);
 		}
-		contentWidth = Math.max(contentWidth, font.width(toggleText) + 16 + font.width(pauseText));
+		int buttonsWidth = font.width(toggleText) + 16 + font.width(pauseText);
+		if (panel == Panel.SESSION) {
+			buttonsWidth += 16 + font.width(resetText);
+		}
+		contentWidth = Math.max(contentWidth, buttonsWidth);
 		int width = contentWidth + PAD * 2;
 
 		List<Seg> segments = new ArrayList<>();
@@ -148,23 +173,31 @@ final class TrackerHud {
 		int pauseX = width - PAD - pauseWidth;
 		segments.add(new Seg(toggleText, PAD, y, AQUA));
 		segments.add(new Seg(pauseText, pauseX, y, paused ? GREEN : RED));
-		Zone toggle = new Zone(PAD - 1, y - 1, toggleWidth + 2, lineHeight);
+		// On the total panel "Total / Session" is a button. On the session panel it is only a label.
+		Zone toggle = panel == Panel.TOTAL ? new Zone(PAD - 1, y - 1, toggleWidth + 2, lineHeight) : null;
 		Zone pause = new Zone(pauseX - 1, y - 1, pauseWidth + 2, lineHeight);
+		Zone reset = null;
+		if (panel == Panel.SESSION) {
+			int resetWidth = font.width(resetText);
+			int resetX = pauseX - 10 - resetWidth;
+			segments.add(new Seg(resetText, resetX, y, RED));
+			reset = new Zone(resetX - 1, y - 1, resetWidth + 2, lineHeight);
+		}
 		y += lineHeight + PAD;
 
-		return new Layout(segments, width, y, toggle, pause);
+		return new Layout(segments, width, y, toggle, reset, pause);
 	}
 
 	static int width(Font font, HudBox box, boolean preview) {
-		return (int) Math.ceil(layout(font, preview).width() * box.scale);
+		return (int) Math.ceil(layout(font, preview, panelOf(box)).width() * box.scale);
 	}
 
 	static int height(Font font, HudBox box, boolean preview) {
-		return (int) Math.ceil(layout(font, preview).height() * box.scale);
+		return (int) Math.ceil(layout(font, preview, panelOf(box)).height() * box.scale);
 	}
 
 	static void draw(GuiGraphicsExtractor graphics, Font font, HudBox box, boolean dim, boolean preview) {
-		Layout layout = layout(font, preview);
+		Layout layout = layout(font, preview, panelOf(box));
 		int width = (int) Math.ceil(layout.width() * box.scale);
 		int height = (int) Math.ceil(layout.height() * box.scale);
 		box.keepOnScreen(width, height, graphics.guiWidth(), graphics.guiHeight());
@@ -179,21 +212,29 @@ final class TrackerHud {
 		graphics.pose().popMatrix();
 	}
 
-	/** Clicks on "Total / Session" and "Pause". Returns true if the click hit one of them. */
+	/** Clicks on "Total / Session", "Reset" and "Pause" of either panel. Returns true if the click hit one of them. */
 	static boolean click(Font font, double mouseX, double mouseY) {
-		HudBox box = GuiConfig.TRACKER;
-		if (box.hidden) {
+		return click(font, GuiConfig.TRACKER, mouseX, mouseY) || click(font, GuiConfig.SESSION, mouseX, mouseY);
+	}
+
+	private static boolean click(Font font, HudBox box, double mouseX, double mouseY) {
+		if (box.hidden || !HudVisibility.shown(box)) {
 			return false;
 		}
-		Layout layout = layout(font, false);
+		Panel panel = panelOf(box);
+		Layout layout = layout(font, false, panel);
 		int width = (int) Math.ceil(layout.width() * box.scale);
 		double x = (mouseX - box.left(width)) / box.scale;
 		double y = (mouseY - box.y) / box.scale;
 
-		ProfitTracker tracker = AdvancedNucRunsClient.TRACKER;
-		if (layout.toggle().contains(x, y)) {
+		ProfitTracker tracker = trackerOf(panel);
+		if (layout.toggle() != null && layout.toggle().contains(x, y)) {
 			tracker.setSessionView(!tracker.sessionView());
 			TrackerStore.save();
+			return true;
+		}
+		if (layout.reset() != null && layout.reset().contains(x, y)) {
+			SessionActions.reset();
 			return true;
 		}
 		if (layout.pause().contains(x, y)) {

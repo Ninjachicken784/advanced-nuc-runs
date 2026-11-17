@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
@@ -68,8 +69,12 @@ final class TrackerScreen extends Screen {
 	private String confirming;
 	private long confirmUntil;
 
-	TrackerScreen() {
+	/** The screen to go back to when this one is closed (the /anc menu), or null for the game. */
+	private final Screen parent;
+
+	TrackerScreen(Screen parent) {
 		super(Component.literal("Crystal Nucleus Profit Tracker"));
+		this.parent = parent;
 	}
 
 	private static ProfitTracker tracker() {
@@ -393,6 +398,6 @@ final class TrackerScreen extends Screen {
 	public void onClose() {
 		commit();
 		TrackerStore.save();
-		super.onClose();
+		Minecraft.getInstance().setScreen(parent);
 	}
 }
