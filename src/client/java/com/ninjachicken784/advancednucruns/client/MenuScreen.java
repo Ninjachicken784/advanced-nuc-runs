@@ -28,6 +28,7 @@ final class MenuScreen extends Screen {
 		GENERAL("General"),
 		TRACKER("Tracker"),
 		GUI("GUI"),
+		RANK("Rank"),
 		HISTORY("History");
 
 		final String label;
@@ -37,9 +38,9 @@ final class MenuScreen extends Screen {
 		}
 	}
 
-	private static final int SIDEBAR = 96;
+	private static final int SIDEBAR = 112;
 	private static final int TAB_HEIGHT = 26;
-	private static final int ROW_HEIGHT = 36;
+	private static final int ROW_HEIGHT = 44;
 	private static final int BUTTON_WIDTH = 112;
 	private static final int BUTTON_HEIGHT = 18;
 	private static final int LIST_ROW = 16;
@@ -150,6 +151,7 @@ final class MenuScreen extends Screen {
 			case GENERAL -> drawGeneral(graphics, mouseX, mouseY, contentLeft, contentRight, contentTop);
 			case TRACKER -> drawTracker(graphics, mouseX, mouseY, contentLeft, contentRight, contentTop);
 			case GUI -> drawGui(graphics, mouseX, mouseY, contentLeft, contentRight, contentTop);
+			case RANK -> drawRank(graphics, mouseX, mouseY, contentLeft, contentRight, contentTop);
 			case HISTORY -> drawHistory(graphics, mouseX, mouseY, contentLeft, contentRight, contentTop, contentBottom);
 		}
 
@@ -162,15 +164,43 @@ final class MenuScreen extends Screen {
 		confirmingDelete = false;
 	}
 
-	/** One row: a name, a short explanation under it, and a button on the right. */
+	/**
+	 * One row: a name, a short explanation under it (wrapped so it stays left of the button), and
+	 * a button on the right.
+	 */
 	private int row(GuiGraphicsExtractor graphics, int mouseX, int mouseY, int left, int right, int y, String name,
 					String description, String buttonText, int buttonColor, Click click) {
-		graphics.text(this.font, name, left, y + 3, WHITE);
-		graphics.text(this.font, description, left, y + 3 + this.font.lineHeight + 3, GRAY);
 		int buttonX = right - BUTTON_WIDTH;
-		button(graphics, mouseX, mouseY, buttonX, y + 4, BUTTON_WIDTH, BUTTON_HEIGHT, buttonText, buttonColor, click);
+		int textWidth = buttonX - 8 - left;
+		graphics.text(this.font, name, left, y + 3, WHITE);
+		int lineY = y + 3 + this.font.lineHeight + 3;
+		for (String line : wrap(description, textWidth)) {
+			graphics.text(this.font, line, left, lineY, GRAY);
+			lineY += this.font.lineHeight + 2;
+		}
+		button(graphics, mouseX, mouseY, buttonX, y + (ROW_HEIGHT - 3 - BUTTON_HEIGHT) / 2, BUTTON_WIDTH, BUTTON_HEIGHT,
+			buttonText, buttonColor, click);
 		graphics.fill(left, y + ROW_HEIGHT - 3, right, y + ROW_HEIGHT - 2, TAB_BG);
 		return y + ROW_HEIGHT;
+	}
+
+	/** Breaks a text into lines that are at most this wide on screen. */
+	private List<String> wrap(String text, int maxWidth) {
+		List<String> lines = new ArrayList<>();
+		StringBuilder current = new StringBuilder();
+		for (String word : text.split(" ")) {
+			String attempt = current.length() == 0 ? word : current + " " + word;
+			if (current.length() > 0 && this.font.width(attempt) > maxWidth) {
+				lines.add(current.toString());
+				current = new StringBuilder(word);
+			} else {
+				current = new StringBuilder(attempt);
+			}
+		}
+		if (current.length() > 0) {
+			lines.add(current.toString());
+		}
+		return lines;
 	}
 
 	private void drawGeneral(GuiGraphicsExtractor graphics, int mouseX, int mouseY, int left, int right, int y) {
@@ -226,6 +256,39 @@ final class MenuScreen extends Screen {
 		row(graphics, mouseX, mouseY, left, right, y, "Change GUI",
 			"Move, resize or hide every box.",
 			"Open", WHITE, () -> Minecraft.getInstance().setScreen(new GuiEditScreen(this)));
+	}
+
+	private void drawRank(GuiGraphicsExtractor graphics, int mouseX, int mouseY, int left, int right, int y) {
+		y = row(graphics, mouseX, mouseY, left, right, y, "Rank box",
+			"Your leaderboard place, your runs and the runs left to your goal.",
+			GuiConfig.RANK.hidden ? "Hidden" : "Shown", GuiConfig.RANK.hidden ? RED : GREEN, () -> {
+				GuiConfig.RANK.hidden = !GuiConfig.RANK.hidden;
+				saveSettings();
+			});
+
+		y += 4;
+		for (String line : wrap("Now: " + AncCommand.rankStatus(), right - left)) {
+			graphics.text(this.font, line, left, y, AQUA);
+			y += this.font.lineHeight + 2;
+		}
+		y += 6;
+		for (String line : wrap("Read your place on the leaderboard (for example with the SkyHelper bot) and type it"
+			+ " in. The mod then adds every run you finish.", right - left)) {
+			graphics.text(this.font, line, left, y, GRAY);
+			y += this.font.lineHeight + 2;
+		}
+		y += 6;
+		String[][] commands = {
+			{"/anc Rank 91 3046", "your place and your runs"},
+			{"/anc Rank next 3047", "runs of the player above you"},
+			{"/anc Rank goal 10 8800", "the place you want + its runs"},
+			{"/anc Rank clear", "forget all of it"}
+		};
+		for (String[] command : commands) {
+			graphics.text(this.font, command[0], left, y, GOLD);
+			graphics.text(this.font, command[1], left + 126, y, GRAY);
+			y += this.font.lineHeight + 4;
+		}
 	}
 
 	// ---- history tab

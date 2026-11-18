@@ -14,11 +14,14 @@ public final class CommandParser {
 		"Usage: /anc JT | /anc Jungle Temple | /anc WP | /anc Waypoints"
 			+ " | /anc Clear all | /anc Clear waypoint <number>"
 			+ " | /anc Timer start | /anc Timer reset | /anc GUI | /anc Tracker"
-			+ " | /anc Run <time> | /anc Stats reset";
+			+ " | /anc Rank | /anc Run <time> | /anc Stats reset";
 
 	private static final String TIMER_USAGE = "Usage: /anc Timer start | /anc Timer reset | /anc Timer move";
 	private static final String RUN_USAGE =
 		"Usage: /anc Run <time>, for example /anc Run 2 min or /anc Run 1 min 30 sec";
+	private static final String RANK_USAGE =
+		"Usage: /anc Rank <your rank> <your runs> | /anc Rank next <runs of the player above you>"
+			+ " | /anc Rank goal <place> <runs of that player> | /anc Rank clear";
 	private static final String STATS_USAGE = "Usage: /anc Stats reset";
 
 	/** A longest test run, so a typo cannot overflow the time maths. */
@@ -43,6 +46,10 @@ public final class CommandParser {
 		"GUI",
 		"Tracker",
 		"Session reset",
+		"Rank",
+		"Rank next",
+		"Rank goal 10",
+		"Rank clear",
 		"Run 2 min",
 		"Stats reset"
 	);
@@ -76,6 +83,21 @@ public final class CommandParser {
 
 		/** A simulated finished run of this length, for testing. */
 		record RunTest(long nanos) implements Action { }
+
+		/** Shows the leaderboard rank, runs and goal in chat. */
+		record RankShow() implements Action { }
+
+		/** Your leaderboard rank and your runs, as read from the leaderboard just now. */
+		record RankSet(long rank, long runs) implements Action { }
+
+		/** The runs of the player one place above you. */
+		record RankNext(long runs) implements Action { }
+
+		/** The place you want to reach and the runs of the player who holds it. */
+		record RankGoal(long place, long runs) implements Action { }
+
+		/** Forgets the rank, the runs and the goal. */
+		record RankClear() implements Action { }
 
 		/** Clears the PB and this session's average. */
 		record StatsReset() implements Action { }
@@ -130,7 +152,43 @@ public final class CommandParser {
 		if (t[0].equals("stats")) {
 			return parseStats(t);
 		}
+		if (t[0].equals("rank")) {
+			return parseRank(t);
+		}
 		return new Action.Invalid(USAGE);
+	}
+
+	private static Action parseRank(String[] t) {
+		if (t.length == 1) {
+			return new Action.RankShow();
+		}
+		if (t.length == 2 && t[1].equals("clear")) {
+			return new Action.RankClear();
+		}
+		if (t.length == 3 && t[1].equals("next")) {
+			long runs = number(t[2]);
+			return runs > 0L ? new Action.RankNext(runs) : new Action.Invalid(RANK_USAGE);
+		}
+		if (t.length == 4 && t[1].equals("goal")) {
+			long place = number(t[2]);
+			long runs = number(t[3]);
+			return place > 0L && runs > 0L ? new Action.RankGoal(place, runs) : new Action.Invalid(RANK_USAGE);
+		}
+		if (t.length == 3) {
+			long rank = number(t[1]);
+			long runs = number(t[2]);
+			return rank > 0L && runs >= 0L ? new Action.RankSet(rank, runs) : new Action.Invalid(RANK_USAGE);
+		}
+		return new Action.Invalid(RANK_USAGE);
+	}
+
+	/** A whole number such as 91, #91 or 8,800. Returns -1 if it is not one. */
+	private static long number(String text) {
+		String digits = text.replace("#", "").replace(",", "").replace("_", "");
+		if (!digits.matches("\\d{1,9}")) {
+			return -1L;
+		}
+		return Long.parseLong(digits);
 	}
 
 	private static Action parseTimer(String[] t) {

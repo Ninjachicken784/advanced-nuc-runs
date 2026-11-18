@@ -32,6 +32,11 @@ public final class LastDrops {
 		return null;
 	}
 
+	/** How many runs finished since this was first counted. Cannot be edited, so it is safe to measure against. */
+	public synchronized long runIndex() {
+		return runIndex;
+	}
+
 	/** A run finished. */
 	public synchronized void runFinished() {
 		runIndex++;

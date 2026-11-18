@@ -31,9 +31,11 @@ final class GuiConfig {
 	static final HudBox METER = new HudBox(HudBox.Kind.METER, "meter", false, 5, 28, 1.5f);
 	/** The session tracker panel, next to the normal one. */
 	static final HudBox SESSION = new HudBox(HudBox.Kind.SESSION, "session", false, 190, 100, 1.0f);
+	/** The leaderboard rank box, under the other timer boxes. */
+	static final HudBox RANK = new HudBox(HudBox.Kind.RANK, "rank", false, 5, 97, 1.0f);
 
 	/** Every box, in the order they are drawn. */
-	static final List<HudBox> ALL = List.of(TIMER, RUN_TIME, PB, AVERAGE, TRACKER, METER, SESSION);
+	static final List<HudBox> ALL = List.of(TIMER, RUN_TIME, PB, AVERAGE, TRACKER, METER, SESSION, RANK);
 
 	private GuiConfig() { }
 

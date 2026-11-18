@@ -20,6 +20,10 @@ Upper and lower case do not matter. Tab completion works.
 | `/anc GUI` | Opens a screen where you move, resize and hide the on-screen boxes. `/anc Timer move` opens the same screen |
 | `/anc Tracker` | Opens the profit tracker screen: every drop and the run count (editable) plus the tracker settings |
 | `/anc Session reset` | Saves the session tracker to the history and starts it again from zero (same as its Reset button) |
+| `/anc Rank <rank> <runs>` | Your place on the Nucleus runs leaderboard and your runs, as read from the leaderboard just now, for example `/anc Rank 91 3046` |
+| `/anc Rank next <runs>` | The runs of the player one place above you, for example `/anc Rank next 3047` |
+| `/anc Rank goal <place> <runs>` | The place you want to reach and the runs of the player who holds it, for example `/anc Rank goal 10 8800` |
+| `/anc Rank clear` | Forgets the rank, the runs and the goal. `/anc Rank` alone shows them in chat |
 | `/anc Run <time>` | Test command: acts as if you just finished a run of that length. Example: `/anc Run 2 min` or `/anc Run 1 min 30 sec` |
 | `/anc Stats reset` | Clears your saved PB and this session's average |
 
@@ -86,6 +90,19 @@ A second panel (box `Session` in `/anc GUI`) that looks like the Crystal Nucleus
 
 When Divan's Alloy, a Quick Claw or a Jade Dye drops, the chat says how many runs ago the one before it dropped, for example `Last Alloy: 552 runs ago`. The first one the mod sees says `Alloy: first one tracked`. The mod has its own run counter for this, so editing the run count in the tracker screen does not change it.
 
+### Leaderboard rank
+
+A box (`Rank` in `/anc GUI`, or the `Rank` tab of the menu) that shows where you are on the Nucleus runs leaderboard, for example:
+
+```
+#91 Ninjachicken784
+Runs: 3046
+Next #90: 1 run left
+Top 10: 5754 runs left
+```
+
+The mod cannot read a Discord bot such as SkyHelper, so you type in what the leaderboard says (see the commands above). After that the mod adds every run you finish by itself, so the box counts down on its own: `Top 10: 5754 runs left` becomes `5753` after the next run. Read the leaderboard again now and then and type it in again, to correct the numbers and your place. Runs are only counted while the tracker is on. The numbers are saved in `config/advanced_nuc_runs_tracker.properties`.
+
 ### Menu
 
 `/anc` opens the menu. Tabs on the left, the settings of the open tab on the right.
@@ -95,6 +112,7 @@ When Divan's Alloy, a Quick Claw or a Jade Dye drops, the chat says how many run
 | General | `Mod` on/off (off turns off the boxes, the tracker, waypoints and the timer; only `/anc` still works). `Show tracker and GUI`: `Always` or `Crystal Hollows only` (read from the `Area:` line of the tab list) |
 | Tracker | `Tracker` on/off (off: nothing is counted and the panels and the RNG meter are hidden). Show or hide the Total panel and the Session panel. `Open Tracker` |
 | GUI | `GUI` on/off (the Timer, Run Time, PB and Average boxes). `Change GUI` opens the screen where you move, resize and hide the boxes |
+| Rank | Shows or hides the rank box, and lists the `/anc Rank` commands |
 | History | The reset sessions, see above. `Reset session now` |
 
 The switches are saved in `config/advanced_nuc_runs.properties`.

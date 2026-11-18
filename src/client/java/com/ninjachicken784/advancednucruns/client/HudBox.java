@@ -23,7 +23,9 @@ final class HudBox {
 		/** The RNG meter: the selected drop's icon and its progress. */
 		METER,
 		/** The session tracker panel, which has a Reset button. */
-		SESSION
+		SESSION,
+		/** Your place on the Nucleus runs leaderboard and the runs left to your goal. */
+		RANK
 	}
 
 	static final float DEFAULT_SCALE = 1.5f;

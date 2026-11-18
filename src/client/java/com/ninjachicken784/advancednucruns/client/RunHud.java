@@ -98,6 +98,7 @@ final class RunHud {
 		return switch (box.kind) {
 			case RUN_TIME -> content(box, preview) != null;
 			case METER -> MeterHud.visible(preview);
+			case RANK -> RankHud.visible(preview);
 			default -> true;
 		};
 	}
@@ -123,7 +124,7 @@ final class RunHud {
 			case PB -> new Content("PB", valueOrDashes(stats.pbNanos()));
 			case AVERAGE -> new Content("Average", valueOrDashes(stats.averageNanos()));
 			// These two draw themselves and have no label and value.
-			case TRACKER, SESSION, METER -> null;
+			case TRACKER, SESSION, METER, RANK -> null;
 		};
 	}
 
@@ -135,6 +136,7 @@ final class RunHud {
 		return switch (box.kind) {
 			case TRACKER, SESSION -> TrackerHud.width(font, box, preview);
 			case METER -> MeterHud.width(font, box, preview);
+			case RANK -> RankHud.width(font, box, preview);
 			default -> HudText.width(font, content(box, true).label(), content(box, true).value(), box.scale);
 		};
 	}
@@ -143,6 +145,7 @@ final class RunHud {
 		return switch (box.kind) {
 			case TRACKER, SESSION -> TrackerHud.height(font, box, preview);
 			case METER -> MeterHud.height(font, box, preview);
+			case RANK -> RankHud.height(font, box, preview);
 			default -> HudText.height(font, box.scale);
 		};
 	}
@@ -156,6 +159,7 @@ final class RunHud {
 		switch (box.kind) {
 			case TRACKER, SESSION -> TrackerHud.draw(graphics, font, box, dim, preview);
 			case METER -> MeterHud.draw(graphics, font, box, dim, preview);
+			case RANK -> RankHud.draw(graphics, font, box, dim, preview);
 			default -> {
 				Content content = content(box, preview);
 				if (content == null) {

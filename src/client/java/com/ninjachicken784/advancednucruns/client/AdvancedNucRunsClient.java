@@ -14,6 +14,7 @@ import com.ninjachicken784.advancednucruns.PriceBook;
 import com.ninjachicken784.advancednucruns.ProfitTracker;
 import com.ninjachicken784.advancednucruns.RngMeter;
 import com.ninjachicken784.advancednucruns.RunStats;
+import com.ninjachicken784.advancednucruns.RankTracker;
 import com.ninjachicken784.advancednucruns.RunTimer;
 import com.ninjachicken784.advancednucruns.SessionHistory;
 import com.ninjachicken784.advancednucruns.TrackerEngine;
@@ -49,6 +50,9 @@ public class AdvancedNucRunsClient implements ClientModInitializer {
 
 	/** When Alloy, Quick Claw and Jade Dye last dropped, in runs. */
 	public static final LastDrops LAST_DROPS = new LastDrops();
+
+	/** Your place on the Nucleus runs leaderboard and the goal, entered with /anc Rank. */
+	public static final RankTracker RANK = new RankTracker();
 
 	/** The on/off switches from the /anc menu. */
 	public static final ModSettings SETTINGS = new ModSettings();

@@ -15,6 +15,7 @@ import net.fabricmc.fabric.api.client.command.v2.ClientCommands;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 
 import com.ninjachicken784.advancednucruns.CommandParser;
+import com.ninjachicken784.advancednucruns.RankTracker;
 import com.ninjachicken784.advancednucruns.Waypoint;
 
 final class AncCommand {
@@ -80,6 +81,24 @@ final class AncCommand {
 			RunHud.requestMenuScreen();
 		} else if (action instanceof CommandParser.Action.SessionReset) {
 			SessionActions.reset();
+		} else if (action instanceof CommandParser.Action.RankShow) {
+			source.sendFeedback(Component.literal(rankStatus()));
+		} else if (action instanceof CommandParser.Action.RankSet set) {
+			AdvancedNucRunsClient.RANK.setCheck(set.rank(), set.runs(), AdvancedNucRunsClient.LAST_DROPS.runIndex());
+			TrackerStore.save();
+			source.sendFeedback(Component.literal("Rank set. " + rankStatus()));
+		} else if (action instanceof CommandParser.Action.RankNext next) {
+			AdvancedNucRunsClient.RANK.setNextRuns(next.runs());
+			TrackerStore.save();
+			source.sendFeedback(Component.literal("Player above you set. " + rankStatus()));
+		} else if (action instanceof CommandParser.Action.RankGoal goal) {
+			AdvancedNucRunsClient.RANK.setGoal(goal.place(), goal.runs());
+			TrackerStore.save();
+			source.sendFeedback(Component.literal("Goal set. " + rankStatus()));
+		} else if (action instanceof CommandParser.Action.RankClear) {
+			AdvancedNucRunsClient.RANK.clear();
+			TrackerStore.save();
+			source.sendFeedback(Component.literal("Rank and goal cleared."));
 		} else if (action instanceof CommandParser.Action.RunTest runTest) {
 			// A simulated run. It goes through the same steps as a real one, but leaves the live timer alone.
 			RunResults.finished(runTest.nanos(), true);
@@ -92,6 +111,25 @@ final class AncCommand {
 		}
 
 		return Command.SINGLE_SUCCESS;
+	}
+
+	/** One chat line with the rank, the runs and the goal, such as "#91 Name, 3046 runs. Top 10: 5754 runs left". */
+	static String rankStatus() {
+		RankTracker rank = AdvancedNucRunsClient.RANK;
+		if (!rank.hasData()) {
+			return "No rank yet. Use /anc Rank <your rank> <your runs>, for example /anc Rank 91 3046.";
+		}
+		long index = AdvancedNucRunsClient.LAST_DROPS.runIndex();
+		StringBuilder line = new StringBuilder(rank.headline(RankHud.playerName())).append(", ").append(rank.runsLine(index));
+		String next = rank.nextLine(index);
+		String goal = rank.goalLine(index);
+		if (next != null) {
+			line.append(". ").append(next);
+		}
+		if (goal != null) {
+			line.append(". ").append(goal);
+		}
+		return line.toString();
 	}
 
 	private static String describe(Waypoint w) {
