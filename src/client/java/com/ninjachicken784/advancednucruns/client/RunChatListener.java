@@ -7,6 +7,7 @@ import net.minecraft.network.chat.Component;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents;
 
+import com.ninjachicken784.advancednucruns.DivanTracker;
 import com.ninjachicken784.advancednucruns.RunTimer;
 
 /**
@@ -33,6 +34,15 @@ final class RunChatListener {
 			// The tracker and the RNG meter read the whole loot bundle, line by line.
 			if (HudVisibility.trackerOn()) {
 				AdvancedNucRunsClient.ENGINE.onMessage(message.getString(), AdvancedNucRunsClient.nowMillis());
+			}
+			// Scavenged tools from Metal Detector chests in the Mines of Divan.
+			DivanTracker.Found found = AdvancedNucRunsClient.DIVAN.onMessage(message.getString(),
+				AdvancedNucRunsClient.nowMillis());
+			if (found != null) {
+				TrackerStore.save();
+				AdvancedNucRunsClient.chatNotice(found.setCompleted()
+					? found.tool().itemName() + " found. Set complete! " + found.sets() + (found.sets() == 1L ? " set" : " sets")
+					: found.tool().itemName() + " found (" + found.inSet() + "/4 this set)");
 			}
 			if (!RunTimer.isFinishMessage(message.getString())) {
 				return;

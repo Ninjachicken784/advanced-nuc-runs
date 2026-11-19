@@ -33,9 +33,11 @@ final class GuiConfig {
 	static final HudBox SESSION = new HudBox(HudBox.Kind.SESSION, "session", false, 190, 100, 1.0f);
 	/** The leaderboard rank box, under the other timer boxes. */
 	static final HudBox RANK = new HudBox(HudBox.Kind.RANK, "rank", false, 5, 97, 1.0f);
+	/** The Divan Tools box, under the rank box. */
+	static final HudBox DIVAN = new HudBox(HudBox.Kind.DIVAN, "divan", false, 5, 150, 1.0f);
 
 	/** Every box, in the order they are drawn. */
-	static final List<HudBox> ALL = List.of(TIMER, RUN_TIME, PB, AVERAGE, TRACKER, METER, SESSION, RANK);
+	static final List<HudBox> ALL = List.of(TIMER, RUN_TIME, PB, AVERAGE, TRACKER, METER, SESSION, RANK, DIVAN);
 
 	private GuiConfig() { }
 

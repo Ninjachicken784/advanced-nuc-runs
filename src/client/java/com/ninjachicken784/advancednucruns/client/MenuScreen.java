@@ -253,6 +253,12 @@ final class MenuScreen extends Screen {
 				s.setGuiEnabled(!s.guiEnabled());
 				saveSettings();
 			});
+		y = row(graphics, mouseX, mouseY, left, right, y, "Divan Tools box",
+			"Scavenged tools, sets and tools/h from the Metal Detector.",
+			GuiConfig.DIVAN.hidden ? "Hidden" : "Shown", GuiConfig.DIVAN.hidden ? RED : GREEN, () -> {
+				GuiConfig.DIVAN.hidden = !GuiConfig.DIVAN.hidden;
+				saveSettings();
+			});
 		row(graphics, mouseX, mouseY, left, right, y, "Change GUI",
 			"Move, resize or hide every box.",
 			"Open", WHITE, () -> Minecraft.getInstance().setScreen(new GuiEditScreen(this)));

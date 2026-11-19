@@ -8,6 +8,7 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 
 import com.ninjachicken784.advancednucruns.AdvancedNucRuns;
+import com.ninjachicken784.advancednucruns.DivanTracker;
 import com.ninjachicken784.advancednucruns.LastDrops;
 import com.ninjachicken784.advancednucruns.ModSettings;
 import com.ninjachicken784.advancednucruns.PriceBook;
@@ -50,6 +51,9 @@ public class AdvancedNucRunsClient implements ClientModInitializer {
 
 	/** When Alloy, Quick Claw and Jade Dye last dropped, in runs. */
 	public static final LastDrops LAST_DROPS = new LastDrops();
+
+	/** The Scavenged tools found with the Metal Detector, the sets, and the rates per hour. */
+	public static final DivanTracker DIVAN = new DivanTracker();
 
 	/** Your place on the Nucleus runs leaderboard and the goal, entered with /anc Rank. */
 	public static final RankTracker RANK = new RankTracker();

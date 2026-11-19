@@ -24,6 +24,7 @@ Upper and lower case do not matter. Tab completion works.
 | `/anc Rank next <runs>` | The runs of the player one place above you, for example `/anc Rank next 3047` |
 | `/anc Rank goal <place> <runs>` | The place you want to reach and the runs of the player who holds it, for example `/anc Rank goal 10 8800` |
 | `/anc Rank clear` | Forgets the rank, the runs and the goal. `/anc Rank` alone shows them in chat |
+| `/anc Divan` | Shows the Divan Tools numbers in chat. `/anc Divan start`, `/anc Divan pause` and `/anc Divan reset` control the box |
 | `/anc Run <time>` | Test command: acts as if you just finished a run of that length. Example: `/anc Run 2 min` or `/anc Run 1 min 30 sec` |
 | `/anc Stats reset` | Clears your saved PB and this session's average |
 
@@ -89,6 +90,30 @@ A second panel (box `Session` in `/anc GUI`) that looks like the Crystal Nucleus
 ### Last Alloy, Quick Claw and Jade Dye
 
 When Divan's Alloy, a Quick Claw or a Jade Dye drops, the chat says how many runs ago the one before it dropped, for example `Last Alloy: 552 runs ago`. The first one the mod sees says `Alloy: first one tracked`. The mod has its own run counter for this, so editing the run count in the tracker screen does not change it.
+
+### Divan Tools (Scavenged tools per hour)
+
+A box (`Divan Tools` in `/anc GUI`, or the `GUI` tab of the menu) for the Scavenged tools from Metal Detector chests in the Mines of Divan: Lapis Sword, Golden Hammer, Diamond Axe and Emerald Hammer.
+
+```
+Divan Tools
+Lapis Sword: 3  (in this set)
+Golden Hammer: 2
+Diamond Axe: 2
+Emerald Hammer: 2
+This set: 1/4
+Sets: 2
+Tools/h: 5.8
+Sets/h: 1.3
+Timer: 1H 32min
+Pause Reset
+```
+
+- A tool can only be found once per set, so a set is finished when all four different tools were found. The next find starts a new set.
+- The mod reads the tool name in the game chat (`Scavenged Lapis Sword` and so on). Chat from players, NPC and Keeper talk, and lines like "already have" are ignored. Each find prints a line such as `Scavenged Lapis Sword found (2/4 this set)`.
+- The timer starts at the first find, or with the `Start` button. Click `Pause` / `Resume` and `Reset` (also while the chat is open), or use `/anc Divan start|pause|reset`. It stops by itself after 15 minutes without a find, and that break is not counted, so it does not ruin the per-hour numbers.
+- Tools/h and Sets/h show `--` until a minute is counted. Press `Start` when you begin digging, so the time before your first find counts too.
+- Saved in `config/advanced_nuc_runs_tracker.properties`; after a restart the timer is stopped until the next find or `Start`.
 
 ### Leaderboard rank
 

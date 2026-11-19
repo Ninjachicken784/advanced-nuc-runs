@@ -15,6 +15,8 @@ import net.fabricmc.fabric.api.client.command.v2.ClientCommands;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 
 import com.ninjachicken784.advancednucruns.CommandParser;
+import com.ninjachicken784.advancednucruns.DivanTracker;
+import com.ninjachicken784.advancednucruns.Format;
 import com.ninjachicken784.advancednucruns.RankTracker;
 import com.ninjachicken784.advancednucruns.Waypoint;
 
@@ -81,6 +83,24 @@ final class AncCommand {
 			RunHud.requestMenuScreen();
 		} else if (action instanceof CommandParser.Action.SessionReset) {
 			SessionActions.reset();
+		} else if (action instanceof CommandParser.Action.Divan divan) {
+			long now = AdvancedNucRunsClient.nowMillis();
+			switch (divan.what()) {
+				case "start" -> {
+					AdvancedNucRunsClient.DIVAN.start(now);
+					source.sendFeedback(Component.literal("Divan Tools timer started."));
+				}
+				case "pause" -> {
+					AdvancedNucRunsClient.DIVAN.pause(now);
+					source.sendFeedback(Component.literal("Divan Tools timer paused."));
+				}
+				case "reset" -> {
+					AdvancedNucRunsClient.DIVAN.reset();
+					source.sendFeedback(Component.literal("Divan Tools reset."));
+				}
+				default -> source.sendFeedback(Component.literal(divanStatus()));
+			}
+			TrackerStore.save();
 		} else if (action instanceof CommandParser.Action.RankShow) {
 			source.sendFeedback(Component.literal(rankStatus()));
 		} else if (action instanceof CommandParser.Action.RankSet set) {
@@ -111,6 +131,20 @@ final class AncCommand {
 		}
 
 		return Command.SINGLE_SUCCESS;
+	}
+
+	/** One chat line with the Divan Tools numbers, such as "Sets: 2, Tools: 9, Sets/h: 1.3, Tools/h: 5.8, Timer: 1H 32min". */
+	static String divanStatus() {
+		DivanTracker divan = AdvancedNucRunsClient.DIVAN;
+		long now = AdvancedNucRunsClient.nowMillis();
+		return "Divan Tools: " + divan.sets() + " sets, " + divan.totalFound() + " tools, this set "
+			+ divan.currentSetSize() + "/4. Per hour: "
+			+ rate(divan.setsPerHour(now)) + " sets, " + rate(divan.toolsPerHour(now)) + " tools. Timer: "
+			+ Format.duration(divan.activeMillis(now)) + ".";
+	}
+
+	private static String rate(double value) {
+		return Double.isNaN(value) ? "--" : String.format(Locale.ROOT, "%.1f", value);
 	}
 
 	/** One chat line with the rank, the runs and the goal, such as "#91 Name, 3046 runs. Top 10: 5754 runs left". */

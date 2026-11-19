@@ -214,7 +214,8 @@ final class TrackerHud {
 
 	/** Clicks on "Total / Session", "Reset" and "Pause" of either panel. Returns true if the click hit one of them. */
 	static boolean click(Font font, double mouseX, double mouseY) {
-		return click(font, GuiConfig.TRACKER, mouseX, mouseY) || click(font, GuiConfig.SESSION, mouseX, mouseY);
+		return click(font, GuiConfig.TRACKER, mouseX, mouseY) || click(font, GuiConfig.SESSION, mouseX, mouseY)
+			|| DivanHud.click(font, mouseX, mouseY);
 	}
 
 	private static boolean click(Font font, HudBox box, double mouseX, double mouseY) {
