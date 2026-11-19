@@ -28,7 +28,11 @@ final class RunChatListener {
 		// Hypixel sends these lines as game messages, which players cannot fake from chat.
 		ClientReceiveMessageEvents.GAME.register((message, overlay) -> {
 			// Switched off from the /anc menu: nothing is counted or timed.
-			if (overlay || !HudVisibility.modOn()) {
+			if (!HudVisibility.modOn()) {
+				return;
+			}
+			// The detector shows its distance in the action bar (overlay), sometimes in chat.
+			if (ChestFinderClient.onMessage(message.getString()) || overlay) {
 				return;
 			}
 			// The tracker and the RNG meter read the whole loot bundle, line by line.
@@ -36,8 +40,8 @@ final class RunChatListener {
 				AdvancedNucRunsClient.ENGINE.onMessage(message.getString(), AdvancedNucRunsClient.nowMillis());
 			}
 			// Scavenged tools from Metal Detector chests in the Mines of Divan.
-			DivanTracker.Found found = AdvancedNucRunsClient.DIVAN.onMessage(message.getString(),
-				AdvancedNucRunsClient.nowMillis());
+			DivanTracker.Found found = !HudVisibility.toolsOn() ? null
+				: AdvancedNucRunsClient.DIVAN.onMessage(message.getString(), AdvancedNucRunsClient.nowMillis());
 			if (found != null) {
 				TrackerStore.save();
 				AdvancedNucRunsClient.chatNotice(found.setCompleted()

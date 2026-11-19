@@ -17,6 +17,7 @@ public final class ModSettings {
 	private volatile boolean modEnabled = true;
 	private volatile boolean trackerEnabled = true;
 	private volatile boolean guiEnabled = true;
+	private volatile boolean toolsEnabled = false;
 	private volatile Visibility visibility = Visibility.ALWAYS;
 
 	/** False turns everything off except the /anc command itself. */
@@ -46,6 +47,15 @@ public final class ModSettings {
 		guiEnabled = on;
 	}
 
+	/** The Tools Tracker: counts Scavenged tools, shows its box and the Metal Detector chest finder. Off by default. */
+	public boolean toolsEnabled() {
+		return toolsEnabled;
+	}
+
+	public void setToolsEnabled(boolean on) {
+		toolsEnabled = on;
+	}
+
 	public Visibility visibility() {
 		return visibility;
 	}
@@ -58,6 +68,7 @@ public final class ModSettings {
 		out.setProperty("settings.mod", Boolean.toString(modEnabled));
 		out.setProperty("settings.tracker", Boolean.toString(trackerEnabled));
 		out.setProperty("settings.gui", Boolean.toString(guiEnabled));
+		out.setProperty("settings.tools", Boolean.toString(toolsEnabled));
 		out.setProperty("settings.visibility", visibility.name());
 	}
 
@@ -65,6 +76,7 @@ public final class ModSettings {
 		modEnabled = Boolean.parseBoolean(in.getProperty("settings.mod", "true").trim());
 		trackerEnabled = Boolean.parseBoolean(in.getProperty("settings.tracker", "true").trim());
 		guiEnabled = Boolean.parseBoolean(in.getProperty("settings.gui", "true").trim());
+		toolsEnabled = Boolean.parseBoolean(in.getProperty("settings.tools", "false").trim());
 		try {
 			visibility = Visibility.valueOf(in.getProperty("settings.visibility", "ALWAYS").trim());
 		} catch (IllegalArgumentException e) {

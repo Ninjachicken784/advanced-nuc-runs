@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
  * (Lapis Sword, Golden Hammer, Diamond Axe, Emerald Hammer) and how many of each come per hour.
  *
  * <p>A tool can only be found once per set, so a set is complete when all four different tools
- * were found; the next find then starts a new set. The timer starts at the first find (or with
+ * were found; the next find then starts a new set. The timer starts when the first chest is opened (or at the first find, or with
  * {@link #start}), can be paused, and stops by itself after {@link #IDLE_MILLIS} without a find,
  * so a break does not ruin the hourly rate. Contains no Minecraft code, so it can be tested on its own.
  */
@@ -236,6 +236,11 @@ public final class DivanTracker {
 		} else {
 			start(now);
 		}
+	}
+
+	/** A Metal Detector chest was opened: starts the timer if it was never started, or keeps it going. */
+	public synchronized void chestOpened(long now) {
+		touch(now);
 	}
 
 	/** A find: keeps the timer going, and starts it if it was never started. */

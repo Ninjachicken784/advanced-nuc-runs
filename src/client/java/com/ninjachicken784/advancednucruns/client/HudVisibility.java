@@ -65,11 +65,21 @@ final class HudVisibility {
 		return settings.modEnabled() && settings.trackerEnabled();
 	}
 
+	/** True if the Tools Tracker (Scavenged tool counting and the chest finder) is switched on. */
+	static boolean toolsOn() {
+		ModSettings settings = AdvancedNucRunsClient.SETTINGS;
+		return settings.modEnabled() && settings.toolsEnabled();
+	}
+
 	/** True if the box may be drawn on the normal game screen right now (hiding by hand is checked separately). */
 	static boolean shown(HudBox box) {
 		ModSettings settings = AdvancedNucRunsClient.SETTINGS;
 		if (!settings.modEnabled()) {
 			return false;
+		}
+		if (box.kind == HudBox.Kind.DIVAN) {
+			return settings.toolsEnabled()
+				&& (settings.visibility() == ModSettings.Visibility.ALWAYS || inCrystalHollows);
 		}
 		boolean trackerGroup = box.kind == HudBox.Kind.TRACKER || box.kind == HudBox.Kind.SESSION
 			|| box.kind == HudBox.Kind.METER;

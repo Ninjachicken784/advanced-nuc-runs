@@ -116,7 +116,7 @@ final class MenuScreen extends Screen {
 		graphics.fill(0, 0, guiWidth, guiHeight, DIM);
 
 		int width = Math.min(guiWidth - 16, 460);
-		int height = Math.min(guiHeight - 16, 262);
+		int height = Math.min(guiHeight - 16, 290);
 		int left = (guiWidth - width) / 2;
 		int top = (guiHeight - height) / 2;
 
@@ -228,6 +228,12 @@ final class MenuScreen extends Screen {
 				s.setTrackerEnabled(!s.trackerEnabled());
 				saveSettings();
 			});
+		y = row(graphics, mouseX, mouseY, left, right, y, "Tools Tracker",
+			"Counts Scavenged tools and shows chests with a line. Timer starts at your first chest; Pause it on the box.",
+			s.toolsEnabled() ? "ON" : "OFF", s.toolsEnabled() ? GREEN : RED, () -> {
+				s.setToolsEnabled(!s.toolsEnabled());
+				saveSettings();
+			});
 		y = row(graphics, mouseX, mouseY, left, right, y, "Total panel",
 			"The tracker with everything ever counted.",
 			GuiConfig.TRACKER.hidden ? "Hidden" : "Shown", GuiConfig.TRACKER.hidden ? RED : GREEN, () -> {
@@ -251,12 +257,6 @@ final class MenuScreen extends Screen {
 			"Off hides the Timer, Run Time, PB and Average boxes.",
 			s.guiEnabled() ? "ON" : "OFF", s.guiEnabled() ? GREEN : RED, () -> {
 				s.setGuiEnabled(!s.guiEnabled());
-				saveSettings();
-			});
-		y = row(graphics, mouseX, mouseY, left, right, y, "Divan Tools box",
-			"Scavenged tools, sets and tools/h from the Metal Detector.",
-			GuiConfig.DIVAN.hidden ? "Hidden" : "Shown", GuiConfig.DIVAN.hidden ? RED : GREEN, () -> {
-				GuiConfig.DIVAN.hidden = !GuiConfig.DIVAN.hidden;
 				saveSettings();
 			});
 		row(graphics, mouseX, mouseY, left, right, y, "Change GUI",

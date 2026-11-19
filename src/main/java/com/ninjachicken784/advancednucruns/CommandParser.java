@@ -14,7 +14,7 @@ public final class CommandParser {
 		"Usage: /anc JT | /anc Jungle Temple | /anc WP | /anc Waypoints"
 			+ " | /anc Clear all | /anc Clear waypoint <number>"
 			+ " | /anc Timer start | /anc Timer reset | /anc GUI | /anc Tracker"
-			+ " | /anc Rank | /anc Divan | /anc Run <time> | /anc Stats reset";
+			+ " | /anc Rank | /anc Run <time> | /anc Stats reset";
 
 	private static final String TIMER_USAGE = "Usage: /anc Timer start | /anc Timer reset | /anc Timer move";
 	private static final String RUN_USAGE =
@@ -22,7 +22,6 @@ public final class CommandParser {
 	private static final String RANK_USAGE =
 		"Usage: /anc Rank <your rank> <your runs> | /anc Rank next <runs of the player above you>"
 			+ " | /anc Rank goal <place> <runs of that player> | /anc Rank clear";
-	private static final String DIVAN_USAGE = "Usage: /anc Divan | /anc Divan start | /anc Divan pause | /anc Divan reset";
 	private static final String STATS_USAGE = "Usage: /anc Stats reset";
 
 	/** A longest test run, so a typo cannot overflow the time maths. */
@@ -51,10 +50,6 @@ public final class CommandParser {
 		"Rank next",
 		"Rank goal 10",
 		"Rank clear",
-		"Divan",
-		"Divan start",
-		"Divan pause",
-		"Divan reset",
 		"Run 2 min",
 		"Stats reset"
 	);
@@ -103,9 +98,6 @@ public final class CommandParser {
 
 		/** Forgets the rank, the runs and the goal. */
 		record RankClear() implements Action { }
-
-		/** The Divan Tools box: what is "show" (status in chat), "start", "pause" or "reset". */
-		record Divan(String what) implements Action { }
 
 		/** Clears the PB and this session's average. */
 		record StatsReset() implements Action { }
@@ -163,20 +155,7 @@ public final class CommandParser {
 		if (t[0].equals("rank")) {
 			return parseRank(t);
 		}
-		if (t[0].equals("divan")) {
-			return parseDivan(t);
-		}
 		return new Action.Invalid(USAGE);
-	}
-
-	private static Action parseDivan(String[] t) {
-		if (t.length == 1) {
-			return new Action.Divan("show");
-		}
-		if (t.length == 2 && (t[1].equals("start") || t[1].equals("pause") || t[1].equals("reset"))) {
-			return new Action.Divan(t[1]);
-		}
-		return new Action.Invalid(DIVAN_USAGE);
 	}
 
 	private static Action parseRank(String[] t) {

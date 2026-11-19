@@ -35,6 +35,8 @@ final class WaypointRenderer {
 			return;
 		}
 
+		ChestFinderClient.render();
+
 		Vec3 eye = client.player.getEyePosition();
 
 		for (Waypoint w : AdvancedNucRunsClient.WAYPOINTS.list()) {

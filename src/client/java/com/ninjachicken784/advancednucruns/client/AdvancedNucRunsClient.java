@@ -87,6 +87,7 @@ public class AdvancedNucRunsClient implements ClientModInitializer {
 		});
 
 		WaypointRenderer.register();
+		ChestFinderClient.register();
 		RunHud.register();
 		HudVisibility.register();
 		RunChatListener.register();
