@@ -229,13 +229,13 @@ final class MenuScreen extends Screen {
 				saveSettings();
 			});
 		y = row(graphics, mouseX, mouseY, left, right, y, "Tools Tracker",
-			"Counts Scavenged tools and shows chests with a line. Timer starts at your first chest; Pause it on the box.",
+			"Counts chests and sets per hour, shows chests. Timer starts at your first chest.",
 			s.toolsEnabled() ? "ON" : "OFF", s.toolsEnabled() ? GREEN : RED, () -> {
 				s.setToolsEnabled(!s.toolsEnabled());
 				saveSettings();
 			});
 		y = row(graphics, mouseX, mouseY, left, right, y, "Reset Tools Tracker",
-			"Sets the Scavenged tool counts, sets and timer back to zero.",
+			"Sets the chest and set counts and the timer back to zero.",
 			"Reset", RED, () -> {
 				AdvancedNucRunsClient.DIVAN.reset();
 				TrackerStore.save();

@@ -31,13 +31,7 @@ final class DivanHud {
 		long now = AdvancedNucRunsClient.nowMillis();
 		List<Line> lines = new ArrayList<>();
 		lines.add(new Line("Divan Tools", ""));
-		for (DivanTracker.Tool tool : DivanTracker.Tool.values()) {
-			String mark = tracker.inCurrentSet(tool) ? "  (in this set)" : "";
-			lines.add(new Line(tool.label() + ":", tracker.found(tool) + mark));
-		}
-		lines.add(new Line("This set:", tracker.currentSetSize() + "/4"));
-		lines.add(new Line("Sets:", String.valueOf(tracker.sets())));
-		lines.add(new Line("Tools/h:", rate(tracker.toolsPerHour(now))));
+		lines.add(new Line("Chests/h:", rate(tracker.chestsPerHour(now))));
 		lines.add(new Line("Sets/h:", rate(tracker.setsPerHour(now))));
 		lines.add(new Line("Timer:", Format.duration(tracker.activeMillis(now))));
 		return lines;
@@ -92,22 +86,24 @@ final class DivanHud {
 		int lineHeight = HudText.height(font, box.scale);
 		double x = (mouseX - box.left(width)) / box.scale - PAD;
 		double y = (mouseY - (box.y + lines.size() * lineHeight)) / box.scale;
-		if (y < 0 || y > font.lineHeight + PAD * 2) {
+		if (y < -1 || y > font.lineHeight + PAD * 2 + 1) {
 			return false;
 		}
-		String button = buttonText();
-		int buttonWidth = font.width(button);
-		int resetStart = font.width(button + " ");
-		if (x >= -1 && x <= buttonWidth + 1) {
-			AdvancedNucRunsClient.DIVAN.toggle(AdvancedNucRunsClient.nowMillis());
-			TrackerStore.save();
-			return true;
+		int rowWidth = (int) Math.ceil(width / box.scale);
+		int resetStart = font.width(buttonText() + " ");
+		if (x < -PAD || x > rowWidth) {
+			return false;
 		}
-		if (x >= resetStart - 1 && x <= resetStart + font.width("Reset") + 1) {
+		boolean reset = x >= resetStart - 2;
+		if (reset) {
 			AdvancedNucRunsClient.DIVAN.reset();
 			TrackerStore.save();
-			return true;
+			AdvancedNucRunsClient.chatNotice("Tools Tracker reset.");
+		} else {
+			AdvancedNucRunsClient.DIVAN.toggle(AdvancedNucRunsClient.nowMillis());
+			TrackerStore.save();
+			AdvancedNucRunsClient.chatNotice("Tools Tracker timer " + (buttonText().equals("Pause") ? "running." : "paused."));
 		}
-		return false;
+		return true;
 	}
 }

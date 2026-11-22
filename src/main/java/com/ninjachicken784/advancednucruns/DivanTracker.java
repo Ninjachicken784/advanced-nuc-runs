@@ -58,6 +58,7 @@ public final class DivanTracker {
 	private final boolean[] inSet = new boolean[Tool.values().length];
 	private final long[] lastCounted = new long[Tool.values().length];
 	private long sets;
+	private long chests;
 
 	private long accumulated;
 	private long segmentStart = -1L;
@@ -141,6 +142,16 @@ public final class DivanTracker {
 		return total;
 	}
 
+	/** Chests opened. */
+	public synchronized long chests() {
+		return chests;
+	}
+
+	/** Chests opened per hour, or NaN while less than a minute is counted. */
+	public synchronized double chestsPerHour(long now) {
+		return perHour(chests, now);
+	}
+
 	/** Finished sets of four. */
 	public synchronized long sets() {
 		return sets;
@@ -164,7 +175,7 @@ public final class DivanTracker {
 
 	/** True if nothing was found and no time was counted. */
 	public synchronized boolean isEmpty() {
-		return totalFound() == 0L && accumulated == 0L && segmentStart < 0L;
+		return totalFound() == 0L && chests == 0L && accumulated == 0L && segmentStart < 0L;
 	}
 
 	/** Tools per hour, or NaN while less than a minute is counted. */
@@ -240,6 +251,7 @@ public final class DivanTracker {
 
 	/** A Metal Detector chest was opened: starts the timer if it was never started, or keeps it going. */
 	public synchronized void chestOpened(long now) {
+		chests++;
 		touch(now);
 	}
 
@@ -264,6 +276,7 @@ public final class DivanTracker {
 		java.util.Arrays.fill(inSet, false);
 		java.util.Arrays.fill(lastCounted, Long.MIN_VALUE / 2);
 		sets = 0L;
+		chests = 0L;
 		accumulated = 0L;
 		segmentStart = -1L;
 		lastActivity = 0L;
@@ -278,6 +291,7 @@ public final class DivanTracker {
 			out.setProperty("divan.inSet." + tool.name(), Boolean.toString(inSet[tool.ordinal()]));
 		}
 		out.setProperty("divan.sets", Long.toString(sets));
+		out.setProperty("divan.chests", Long.toString(chests));
 		out.setProperty("divan.activeMillis", Long.toString(activeMillis(now)));
 		out.setProperty("divan.paused", Boolean.toString(paused));
 	}
@@ -289,6 +303,7 @@ public final class DivanTracker {
 			inSet[tool.ordinal()] = Boolean.parseBoolean(in.getProperty("divan.inSet." + tool.name(), "false"));
 		}
 		sets = parse(in.getProperty("divan.sets"));
+		chests = parse(in.getProperty("divan.chests"));
 		accumulated = parse(in.getProperty("divan.activeMillis"));
 		// The timer is stopped after a restart: it starts again with the next find or with Start.
 		paused = Boolean.parseBoolean(in.getProperty("divan.paused", "false"));
