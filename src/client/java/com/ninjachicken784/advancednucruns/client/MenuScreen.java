@@ -116,7 +116,7 @@ final class MenuScreen extends Screen {
 		graphics.fill(0, 0, guiWidth, guiHeight, DIM);
 
 		int width = Math.min(guiWidth - 16, 460);
-		int height = Math.min(guiHeight - 16, 290);
+		int height = Math.min(guiHeight - 16, 330);
 		int left = (guiWidth - width) / 2;
 		int top = (guiHeight - height) / 2;
 
@@ -233,6 +233,13 @@ final class MenuScreen extends Screen {
 			s.toolsEnabled() ? "ON" : "OFF", s.toolsEnabled() ? GREEN : RED, () -> {
 				s.setToolsEnabled(!s.toolsEnabled());
 				saveSettings();
+			});
+		y = row(graphics, mouseX, mouseY, left, right, y, "Reset Tools Tracker",
+			"Sets the Scavenged tool counts, sets and timer back to zero.",
+			"Reset", RED, () -> {
+				AdvancedNucRunsClient.DIVAN.reset();
+				TrackerStore.save();
+				AdvancedNucRunsClient.chatNotice("Tools Tracker reset.");
 			});
 		y = row(graphics, mouseX, mouseY, left, right, y, "Total panel",
 			"The tracker with everything ever counted.",
