@@ -229,7 +229,7 @@ final class MenuScreen extends Screen {
 				saveSettings();
 			});
 		y = row(graphics, mouseX, mouseY, left, right, y, "Tools Tracker",
-			"Counts Scavenged tools and shows chests with a line. Timer starts at your first chest; Pause it on the box.",
+			"Counts Scavenged tools and shows chests. Timer starts at your first chest.",
 			s.toolsEnabled() ? "ON" : "OFF", s.toolsEnabled() ? GREEN : RED, () -> {
 				s.setToolsEnabled(!s.toolsEnabled());
 				saveSettings();
