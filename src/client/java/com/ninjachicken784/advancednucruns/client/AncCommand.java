@@ -16,7 +16,6 @@ import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 
 import com.ninjachicken784.advancednucruns.CommandParser;
 import com.ninjachicken784.advancednucruns.Format;
-import com.ninjachicken784.advancednucruns.RankTracker;
 import com.ninjachicken784.advancednucruns.Waypoint;
 
 final class AncCommand {
@@ -82,24 +81,28 @@ final class AncCommand {
 			RunHud.requestMenuScreen();
 		} else if (action instanceof CommandParser.Action.SessionReset) {
 			SessionActions.reset();
-		} else if (action instanceof CommandParser.Action.RankShow) {
-			source.sendFeedback(Component.literal(rankStatus()));
-		} else if (action instanceof CommandParser.Action.RankSet set) {
-			AdvancedNucRunsClient.RANK.setCheck(set.rank(), set.runs(), AdvancedNucRunsClient.LAST_DROPS.runIndex());
+		} else if (action instanceof CommandParser.Action.GoalShow) {
+			source.sendFeedback(Component.literal(GoalHud.status()));
+		} else if (action instanceof CommandParser.Action.GoalSet set) {
+			long index = AdvancedNucRunsClient.LAST_DROPS.runIndex();
+			if (set.runs() >= 0L) {
+				AdvancedNucRunsClient.GOALS.set(set.goal(), set.runs(), index);
+			} else if (!AdvancedNucRunsClient.GOALS.add(set.goal())) {
+				source.sendError(Component.literal("Type your runs too the first time, for example /anc Goal "
+					+ set.goal() + " 3300"));
+				return Command.SINGLE_SUCCESS;
+			}
 			TrackerStore.save();
-			source.sendFeedback(Component.literal("Rank set. " + rankStatus()));
-		} else if (action instanceof CommandParser.Action.RankNext next) {
-			AdvancedNucRunsClient.RANK.setNextRuns(next.runs());
+			source.sendFeedback(Component.literal("Goal set. " + GoalHud.status()));
+		} else if (action instanceof CommandParser.Action.GoalClear clear) {
+			if (clear.goal() == 0L) {
+				AdvancedNucRunsClient.GOALS.clear();
+			} else if (!AdvancedNucRunsClient.GOALS.remove(clear.goal())) {
+				source.sendError(Component.literal("There is no such goal."));
+				return Command.SINGLE_SUCCESS;
+			}
 			TrackerStore.save();
-			source.sendFeedback(Component.literal("Player above you set. " + rankStatus()));
-		} else if (action instanceof CommandParser.Action.RankGoal goal) {
-			AdvancedNucRunsClient.RANK.setGoal(goal.place(), goal.runs());
-			TrackerStore.save();
-			source.sendFeedback(Component.literal("Goal set. " + rankStatus()));
-		} else if (action instanceof CommandParser.Action.RankClear) {
-			AdvancedNucRunsClient.RANK.clear();
-			TrackerStore.save();
-			source.sendFeedback(Component.literal("Rank and goal cleared."));
+			source.sendFeedback(Component.literal("Goal removed."));
 		} else if (action instanceof CommandParser.Action.RunTest runTest) {
 			// A simulated run. It goes through the same steps as a real one, but leaves the live timer alone.
 			RunResults.finished(runTest.nanos(), true);
@@ -116,25 +119,6 @@ final class AncCommand {
 
 	private static String rate(double value) {
 		return Double.isNaN(value) ? "--" : String.format(Locale.ROOT, "%.1f", value);
-	}
-
-	/** One chat line with the rank, the runs and the goal, such as "#91 Name, 3046 runs. Top 10: 5754 runs left". */
-	static String rankStatus() {
-		RankTracker rank = AdvancedNucRunsClient.RANK;
-		if (!rank.hasData()) {
-			return "No rank yet. Use /anc Rank <your rank> <your runs>, for example /anc Rank 91 3046.";
-		}
-		long index = AdvancedNucRunsClient.LAST_DROPS.runIndex();
-		StringBuilder line = new StringBuilder(rank.headline(RankHud.playerName())).append(", ").append(rank.runsLine(index));
-		String next = rank.nextLine(index);
-		String goal = rank.goalLine(index);
-		if (next != null) {
-			line.append(". ").append(next);
-		}
-		if (goal != null) {
-			line.append(". ").append(goal);
-		}
-		return line.toString();
 	}
 
 	private static String describe(Waypoint w) {

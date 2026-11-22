@@ -20,10 +20,10 @@ Upper and lower case do not matter. Tab completion works.
 | `/anc GUI` | Opens a screen where you move, resize and hide the on-screen boxes. `/anc Timer move` opens the same screen |
 | `/anc Tracker` | Opens the profit tracker screen: every drop and the run count (editable) plus the tracker settings |
 | `/anc Session reset` | Saves the session tracker to the history and starts it again from zero (same as its Reset button) |
-| `/anc Rank <rank> <runs>` | Your place on the Nucleus runs leaderboard and your runs, as read from the leaderboard just now, for example `/anc Rank 91 3046` |
-| `/anc Rank next <runs>` | The runs of the player one place above you, for example `/anc Rank next 3047` |
-| `/anc Rank goal <place> <runs>` | The place you want to reach and the runs of the player who holds it, for example `/anc Rank goal 10 8800` |
-| `/anc Rank clear` | Forgets the rank, the runs and the goal. `/anc Rank` alone shows them in chat |
+| `/anc Goal 10000 3300` | Sets a goal of 10000 runs and tells the mod you have 3300 runs now. `/anc Goal 20000` adds another goal, `/anc Goal clear` removes them (`/anc Goal clear 10000` removes one) |
+| `/anc Goal 10000 3300` | Sets a goal of 10000 runs and tells the mod you have 3300 runs now. `/anc Goal 20000` adds another goal, `/anc Goal clear` removes them (`/anc Goal clear 10000` removes one) |
+| `/anc Goal 10000 3300` | Sets a goal of 10000 runs and tells the mod you have 3300 runs now. `/anc Goal 20000` adds another goal, `/anc Goal clear` removes them (`/anc Goal clear 10000` removes one) |
+| `/anc Goal 10000 3300` | Sets a goal of 10000 runs and tells the mod you have 3300 runs now. `/anc Goal 20000` adds another goal, `/anc Goal clear` removes them (`/anc Goal clear 10000` removes one) |
 | `/anc Run <time>` | Test command: acts as if you just finished a run of that length. Example: `/anc Run 2 min` or `/anc Run 1 min 30 sec` |
 | `/anc Stats reset` | Clears your saved PB and this session's average |
 
@@ -94,23 +94,22 @@ When Divan's Alloy, a Quick Claw or a Jade Dye drops, the chat says how many run
 
 Off by default. Turn it on in `/anc` > `Tracker` > `Tools Tracker`. No commands needed.
 
-- **Box:** counts Lapis Sword, Golden Hammer, Diamond Axe and Emerald Hammer (one of each per set of four), finished sets, tools/h, sets/h and a timer.
+- **Box:** total Chests and Sets, Chests/h, Sets/h and a timer. A set is counted the moment all four Scavenged tools (Lapis Sword, Golden Hammer, Diamond Axe, Emerald Hammer) are in your inventory at once.
 - **Timer:** starts when you open your first chest in the Crystal Hollows. Click `Pause` / `Resume` or `Reset` on the box (works with chat open). It stops by itself after 15 minutes without a chest or find, and that break is not counted.
 - **Chest finder:** hold the Metal Detector. The mod reads the `TREASURE: 7.3m` distance and works out the chest after every reading (no standing still), then draws a gold box, a label and a line to it, through walls. Walk up to a Keeper once per game so it knows where the Mines are. If several spots still fit, the best gets the line and the others are outlined as `maybe`. Opening the chest clears it for the next one.
 
 
-### Leaderboard rank
+### Goals
 
-A box (`Rank` in `/anc GUI`, or the `Rank` tab of the menu) that shows where you are on the Nucleus runs leaderboard, for example:
+Type `/anc Goal 10000 3300` (goal, then your runs right now). The mod adds every run you finish and shows a box (`Goals` in the menu):
 
 ```
-#91 Ninjachicken784
-Runs: 3046
-Next #90: 1 run left
-Top 10: 5754 runs left
+Goal 10k
+Left: 6700 runs
+Time: 223h 30min
 ```
 
-The mod cannot read a Discord bot such as SkyHelper, so you type in what the leaderboard says (see the commands above). After that the mod adds every run you finish by itself, so the box counts down on its own: `Top 10: 5754 runs left` becomes `5753` after the next run. Read the leaderboard again now and then and type it in again, to correct the numbers and your place. Runs are only counted while the tracker is on. The numbers are saved in `config/advanced_nuc_runs_tracker.properties`.
+The time is the runs left times your average run time this session (`--` until you finished a run). Add more goals with `/anc Goal 20000`; `/anc Goal clear` removes all, `/anc Goal clear 10000` one. `10k` also works.
 
 ### Menu
 
@@ -121,7 +120,7 @@ The mod cannot read a Discord bot such as SkyHelper, so you type in what the lea
 | General | `Mod` on/off (off turns off the boxes, the tracker, waypoints and the timer; only `/anc` still works). `Show tracker and GUI`: `Always` or `Crystal Hollows only` (read from the `Area:` line of the tab list) |
 | Tracker | `Tracker` on/off (off: nothing is counted and the panels and the RNG meter are hidden). Show or hide the Total panel and the Session panel. `Open Tracker` |
 | GUI | `GUI` on/off (the Timer, Run Time, PB and Average boxes). `Change GUI` opens the screen where you move, resize and hide the boxes |
-| Rank | Shows or hides the rank box, and lists the `/anc Rank` commands |
+| Goals | Shows or hides the goals box |
 | History | The reset sessions, see above. `Reset session now` |
 
 The switches are saved in `config/advanced_nuc_runs.properties`.

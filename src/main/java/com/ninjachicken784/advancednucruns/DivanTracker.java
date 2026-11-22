@@ -59,6 +59,7 @@ public final class DivanTracker {
 	private final long[] lastCounted = new long[Tool.values().length];
 	private long sets;
 	private long chests;
+	private boolean holdingSet;
 
 	private long accumulated;
 	private long segmentStart = -1L;
@@ -140,6 +141,28 @@ public final class DivanTracker {
 			total += value;
 		}
 		return total;
+	}
+
+	/**
+	 * Tells which of the four tools are in the inventory right now (in the order of {@link Tool}).
+	 * When all four are there, a set is counted at once, and not again until one of them leaves
+	 * the inventory (handed in). Returns true if this call counted a new set.
+	 */
+	public synchronized boolean inventory(boolean[] has, long now) {
+		boolean all = has.length >= Tool.values().length;
+		for (boolean held : has) {
+			all &= held;
+		}
+		if (all && !holdingSet) {
+			holdingSet = true;
+			sets++;
+			touch(now);
+			return true;
+		}
+		if (!all) {
+			holdingSet = false;
+		}
+		return false;
 	}
 
 	/** Chests opened. */
@@ -291,6 +314,7 @@ public final class DivanTracker {
 			out.setProperty("divan.inSet." + tool.name(), Boolean.toString(inSet[tool.ordinal()]));
 		}
 		out.setProperty("divan.sets", Long.toString(sets));
+		out.setProperty("divan.holding", Boolean.toString(holdingSet));
 		out.setProperty("divan.chests", Long.toString(chests));
 		out.setProperty("divan.activeMillis", Long.toString(activeMillis(now)));
 		out.setProperty("divan.paused", Boolean.toString(paused));
@@ -304,6 +328,7 @@ public final class DivanTracker {
 		}
 		sets = parse(in.getProperty("divan.sets"));
 		chests = parse(in.getProperty("divan.chests"));
+		holdingSet = Boolean.parseBoolean(in.getProperty("divan.holding", "false"));
 		accumulated = parse(in.getProperty("divan.activeMillis"));
 		// The timer is stopped after a restart: it starts again with the next find or with Start.
 		paused = Boolean.parseBoolean(in.getProperty("divan.paused", "false"));

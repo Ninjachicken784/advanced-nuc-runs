@@ -25,7 +25,7 @@ final class HudBox {
 		/** The session tracker panel, which has a Reset button. */
 		SESSION,
 		/** Your place on the Nucleus runs leaderboard and the runs left to your goal. */
-		RANK,
+		GOALS,
 		/** The Divan Tools box: Scavenged tools, sets and rates per hour. */
 		DIVAN
 	}

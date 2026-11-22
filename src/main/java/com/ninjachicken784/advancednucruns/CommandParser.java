@@ -14,14 +14,14 @@ public final class CommandParser {
 		"Usage: /anc JT | /anc Jungle Temple | /anc WP | /anc Waypoints"
 			+ " | /anc Clear all | /anc Clear waypoint <number>"
 			+ " | /anc Timer start | /anc Timer reset | /anc GUI | /anc Tracker"
-			+ " | /anc Rank | /anc Run <time> | /anc Stats reset";
+			+ " | /anc Goal | /anc Run <time> | /anc Stats reset";
 
 	private static final String TIMER_USAGE = "Usage: /anc Timer start | /anc Timer reset | /anc Timer move";
 	private static final String RUN_USAGE =
 		"Usage: /anc Run <time>, for example /anc Run 2 min or /anc Run 1 min 30 sec";
-	private static final String RANK_USAGE =
-		"Usage: /anc Rank <your rank> <your runs> | /anc Rank next <runs of the player above you>"
-			+ " | /anc Rank goal <place> <runs of that player> | /anc Rank clear";
+	private static final String GOAL_USAGE =
+		"Usage: /anc Goal <goal> <your runs>, for example /anc Goal 10000 3300 | /anc Goal <another goal>"
+			+ " | /anc Goal clear | /anc Goal clear <goal>";
 	private static final String STATS_USAGE = "Usage: /anc Stats reset";
 
 	/** A longest test run, so a typo cannot overflow the time maths. */
@@ -46,10 +46,8 @@ public final class CommandParser {
 		"GUI",
 		"Tracker",
 		"Session reset",
-		"Rank",
-		"Rank next",
-		"Rank goal 10",
-		"Rank clear",
+		"Goal",
+		"Goal clear",
 		"Run 2 min",
 		"Stats reset"
 	);
@@ -84,20 +82,14 @@ public final class CommandParser {
 		/** A simulated finished run of this length, for testing. */
 		record RunTest(long nanos) implements Action { }
 
-		/** Shows the leaderboard rank, runs and goal in chat. */
-		record RankShow() implements Action { }
+		/** Shows the goals in chat. */
+		record GoalShow() implements Action { }
 
-		/** Your leaderboard rank and your runs, as read from the leaderboard just now. */
-		record RankSet(long rank, long runs) implements Action { }
+		/** Adds a goal. The runs are optional: without them the runs typed in before are used. */
+		record GoalSet(long goal, long runs) implements Action { }
 
-		/** The runs of the player one place above you. */
-		record RankNext(long runs) implements Action { }
-
-		/** The place you want to reach and the runs of the player who holds it. */
-		record RankGoal(long place, long runs) implements Action { }
-
-		/** Forgets the rank, the runs and the goal. */
-		record RankClear() implements Action { }
+		/** Removes one goal, or all goals if the goal is 0. */
+		record GoalClear(long goal) implements Action { }
 
 		/** Clears the PB and this session's average. */
 		record StatsReset() implements Action { }
@@ -152,34 +144,41 @@ public final class CommandParser {
 		if (t[0].equals("stats")) {
 			return parseStats(t);
 		}
-		if (t[0].equals("rank")) {
-			return parseRank(t);
+		if (t[0].equals("goal")) {
+			return parseGoal(t);
 		}
 		return new Action.Invalid(USAGE);
 	}
 
-	private static Action parseRank(String[] t) {
+	private static Action parseGoal(String[] t) {
 		if (t.length == 1) {
-			return new Action.RankShow();
+			return new Action.GoalShow();
 		}
-		if (t.length == 2 && t[1].equals("clear")) {
-			return new Action.RankClear();
+		if (t[1].equals("clear")) {
+			if (t.length == 2) {
+				return new Action.GoalClear(0L);
+			}
+			long goal = goalNumber(t[2]);
+			return t.length == 3 && goal > 0L ? new Action.GoalClear(goal) : new Action.Invalid(GOAL_USAGE);
 		}
-		if (t.length == 3 && t[1].equals("next")) {
-			long runs = number(t[2]);
-			return runs > 0L ? new Action.RankNext(runs) : new Action.Invalid(RANK_USAGE);
+		long goal = goalNumber(t[1]);
+		if (goal <= 0L || t.length > 3) {
+			return new Action.Invalid(GOAL_USAGE);
 		}
-		if (t.length == 4 && t[1].equals("goal")) {
-			long place = number(t[2]);
-			long runs = number(t[3]);
-			return place > 0L && runs > 0L ? new Action.RankGoal(place, runs) : new Action.Invalid(RANK_USAGE);
+		if (t.length == 2) {
+			return new Action.GoalSet(goal, -1L);
 		}
-		if (t.length == 3) {
-			long rank = number(t[1]);
-			long runs = number(t[2]);
-			return rank > 0L && runs >= 0L ? new Action.RankSet(rank, runs) : new Action.Invalid(RANK_USAGE);
+		long runs = goalNumber(t[2]);
+		return runs >= 0L ? new Action.GoalSet(goal, runs) : new Action.Invalid(GOAL_USAGE);
+	}
+
+	/** Like {@link #number}, and "10k" means 10000. */
+	private static long goalNumber(String text) {
+		if (text.endsWith("k")) {
+			long value = number(text.substring(0, text.length() - 1));
+			return value < 0L ? -1L : value * 1000L;
 		}
-		return new Action.Invalid(RANK_USAGE);
+		return number(text);
 	}
 
 	/** A whole number such as 91, #91 or 8,800. Returns -1 if it is not one. */

@@ -23,6 +23,7 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 
 import com.ninjachicken784.advancednucruns.ChestFinder;
+import com.ninjachicken784.advancednucruns.DivanTracker;
 
 /**
  * The Metal Detector chest finder of the Tools Tracker. It reads the "TREASURE: 7.3m" distance the
@@ -44,6 +45,7 @@ final class ChestFinderClient {
 	private static volatile ChestFinder.Result result = ChestFinder.Result.NONE;
 	private static boolean keeperHintShown;
 	private static int ticks;
+	private static int inventoryTicks;
 	private static long lastOpenMillis;
 
 	private ChestFinderClient() { }
@@ -56,6 +58,12 @@ final class ChestFinderClient {
 					findCenter(client);
 				}
 			}
+			if (++inventoryTicks >= 10) {
+				inventoryTicks = 0;
+				if (HudVisibility.toolsOn()) {
+					checkInventory(client);
+				}
+			}
 		});
 		ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> reset(true));
 		UseBlockCallback.EVENT.register((player, level, hand, hit) -> {
@@ -65,6 +73,32 @@ final class ChestFinderClient {
 			}
 			return InteractionResult.PASS;
 		});
+	}
+
+	/** A set is counted the moment all four Scavenged tools are in the inventory. */
+	private static void checkInventory(Minecraft client) {
+		if (client.player == null) {
+			return;
+		}
+		DivanTracker.Tool[] tools = DivanTracker.Tool.values();
+		boolean[] has = new boolean[tools.length];
+		var inventory = client.player.getInventory();
+		for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
+			var stack = inventory.getItem(slot);
+			if (stack.isEmpty()) {
+				continue;
+			}
+			String name = stack.getHoverName().getString();
+			for (int i = 0; i < tools.length; i++) {
+				if (name.contains(tools[i].itemName())) {
+					has[i] = true;
+				}
+			}
+		}
+		if (AdvancedNucRunsClient.DIVAN.inventory(has, AdvancedNucRunsClient.nowMillis())) {
+			TrackerStore.save();
+			AdvancedNucRunsClient.chatNotice("Set complete! " + AdvancedNucRunsClient.DIVAN.sets() + " sets");
+		}
 	}
 
 	private static void reset(boolean everything) {

@@ -39,15 +39,6 @@ final class RunChatListener {
 			if (HudVisibility.trackerOn()) {
 				AdvancedNucRunsClient.ENGINE.onMessage(message.getString(), AdvancedNucRunsClient.nowMillis());
 			}
-			// Scavenged tools from Metal Detector chests in the Mines of Divan.
-			DivanTracker.Found found = !HudVisibility.toolsOn() ? null
-				: AdvancedNucRunsClient.DIVAN.onMessage(message.getString(), AdvancedNucRunsClient.nowMillis());
-			if (found != null) {
-				TrackerStore.save();
-				AdvancedNucRunsClient.chatNotice(found.setCompleted()
-					? found.tool().itemName() + " found. Set complete! " + found.sets() + (found.sets() == 1L ? " set" : " sets")
-					: found.tool().itemName() + " found (" + found.inSet() + "/4 this set)");
-			}
 			if (!RunTimer.isFinishMessage(message.getString())) {
 				return;
 			}

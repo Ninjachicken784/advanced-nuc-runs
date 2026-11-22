@@ -15,7 +15,7 @@ import com.ninjachicken784.advancednucruns.PriceBook;
 import com.ninjachicken784.advancednucruns.ProfitTracker;
 import com.ninjachicken784.advancednucruns.RngMeter;
 import com.ninjachicken784.advancednucruns.RunStats;
-import com.ninjachicken784.advancednucruns.RankTracker;
+import com.ninjachicken784.advancednucruns.GoalTracker;
 import com.ninjachicken784.advancednucruns.RunTimer;
 import com.ninjachicken784.advancednucruns.SessionHistory;
 import com.ninjachicken784.advancednucruns.TrackerEngine;
@@ -55,8 +55,8 @@ public class AdvancedNucRunsClient implements ClientModInitializer {
 	/** The Scavenged tools found with the Metal Detector, the sets, and the rates per hour. */
 	public static final DivanTracker DIVAN = new DivanTracker();
 
-	/** Your place on the Nucleus runs leaderboard and the goal, entered with /anc Rank. */
-	public static final RankTracker RANK = new RankTracker();
+	/** Your run goals, entered with /anc Goal. */
+	public static final GoalTracker GOALS = new GoalTracker();
 
 	/** The on/off switches from the /anc menu. */
 	public static final ModSettings SETTINGS = new ModSettings();

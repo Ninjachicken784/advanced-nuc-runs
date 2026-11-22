@@ -53,7 +53,7 @@ final class TrackerStore {
 			AdvancedNucRunsClient.TRACKER.load(properties);
 			AdvancedNucRunsClient.METER.load(properties);
 			AdvancedNucRunsClient.LAST_DROPS.load(properties);
-			AdvancedNucRunsClient.RANK.load(properties);
+			AdvancedNucRunsClient.GOALS.load(properties);
 			AdvancedNucRunsClient.DIVAN.load(properties);
 			AdvancedNucRunsClient.PRICES.load(properties);
 		});
@@ -68,7 +68,7 @@ final class TrackerStore {
 		AdvancedNucRunsClient.TRACKER.save(tracker, now);
 		AdvancedNucRunsClient.METER.save(tracker);
 		AdvancedNucRunsClient.LAST_DROPS.save(tracker);
-		AdvancedNucRunsClient.RANK.save(tracker);
+		AdvancedNucRunsClient.GOALS.save(tracker);
 		AdvancedNucRunsClient.DIVAN.save(tracker, now);
 		AdvancedNucRunsClient.PRICES.save(tracker);
 		write(FILE, tracker, "Advanced NUC Runs tracker");

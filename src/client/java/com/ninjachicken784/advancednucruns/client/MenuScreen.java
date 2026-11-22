@@ -28,7 +28,7 @@ final class MenuScreen extends Screen {
 		GENERAL("General"),
 		TRACKER("Tracker"),
 		GUI("GUI"),
-		RANK("Rank"),
+		GOALS("Goals"),
 		HISTORY("History");
 
 		final String label;
@@ -151,7 +151,7 @@ final class MenuScreen extends Screen {
 			case GENERAL -> drawGeneral(graphics, mouseX, mouseY, contentLeft, contentRight, contentTop);
 			case TRACKER -> drawTracker(graphics, mouseX, mouseY, contentLeft, contentRight, contentTop);
 			case GUI -> drawGui(graphics, mouseX, mouseY, contentLeft, contentRight, contentTop);
-			case RANK -> drawRank(graphics, mouseX, mouseY, contentLeft, contentRight, contentTop);
+			case GOALS -> drawGoals(graphics, mouseX, mouseY, contentLeft, contentRight, contentTop);
 			case HISTORY -> drawHistory(graphics, mouseX, mouseY, contentLeft, contentRight, contentTop, contentBottom);
 		}
 
@@ -271,31 +271,24 @@ final class MenuScreen extends Screen {
 			"Open", WHITE, () -> Minecraft.getInstance().setScreen(new GuiEditScreen(this)));
 	}
 
-	private void drawRank(GuiGraphicsExtractor graphics, int mouseX, int mouseY, int left, int right, int y) {
-		y = row(graphics, mouseX, mouseY, left, right, y, "Rank box",
-			"Your leaderboard place, your runs and the runs left to your goal.",
-			GuiConfig.RANK.hidden ? "Hidden" : "Shown", GuiConfig.RANK.hidden ? RED : GREEN, () -> {
-				GuiConfig.RANK.hidden = !GuiConfig.RANK.hidden;
+	private void drawGoals(GuiGraphicsExtractor graphics, int mouseX, int mouseY, int left, int right, int y) {
+		y = row(graphics, mouseX, mouseY, left, right, y, "Goals box",
+			"Runs left to each goal and the time it takes at your average run.",
+			GuiConfig.GOALS.hidden ? "Hidden" : "Shown", GuiConfig.GOALS.hidden ? RED : GREEN, () -> {
+				GuiConfig.GOALS.hidden = !GuiConfig.GOALS.hidden;
 				saveSettings();
 			});
 
 		y += 4;
-		for (String line : wrap("Now: " + AncCommand.rankStatus(), right - left)) {
+		for (String line : wrap("Now: " + GoalHud.status(), right - left)) {
 			graphics.text(this.font, line, left, y, AQUA);
 			y += this.font.lineHeight + 2;
 		}
 		y += 6;
-		for (String line : wrap("Read your place on the leaderboard (for example with the SkyHelper bot) and type it"
-			+ " in. The mod then adds every run you finish.", right - left)) {
-			graphics.text(this.font, line, left, y, GRAY);
-			y += this.font.lineHeight + 2;
-		}
-		y += 6;
 		String[][] commands = {
-			{"/anc Rank 91 3046", "your place and your runs"},
-			{"/anc Rank next 3047", "runs of the player above you"},
-			{"/anc Rank goal 10 8800", "the place you want + its runs"},
-			{"/anc Rank clear", "forget all of it"}
+			{"/anc Goal 10000 3300", "goal + your runs now"},
+			{"/anc Goal 20000", "add another goal"},
+			{"/anc Goal clear", "remove all goals"}
 		};
 		for (String[] command : commands) {
 			graphics.text(this.font, command[0], left, y, GOLD);

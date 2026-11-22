@@ -31,6 +31,8 @@ final class DivanHud {
 		long now = AdvancedNucRunsClient.nowMillis();
 		List<Line> lines = new ArrayList<>();
 		lines.add(new Line("Divan Tools", ""));
+		lines.add(new Line("Chests:", String.valueOf(tracker.chests())));
+		lines.add(new Line("Sets:", String.valueOf(tracker.sets())));
 		lines.add(new Line("Chests/h:", rate(tracker.chestsPerHour(now))));
 		lines.add(new Line("Sets/h:", rate(tracker.setsPerHour(now))));
 		lines.add(new Line("Timer:", Format.duration(tracker.activeMillis(now))));
