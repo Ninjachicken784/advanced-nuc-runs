@@ -69,6 +69,19 @@ public final class ChestFinder {
 		centerZ = z;
 	}
 
+	/** True if a chest can be at this block: it is one of the known chest spots of the Mines. */
+	public synchronized boolean isKnownSpot(int x, int y, int z) {
+		if (!hasCenter) {
+			return false;
+		}
+		for (int[] offset : KNOWN_OFFSETS) {
+			if (centerX + offset[0] == x && centerY + offset[1] == y && centerZ + offset[2] == z) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public synchronized boolean hasCenter() {
 		return hasCenter;
 	}

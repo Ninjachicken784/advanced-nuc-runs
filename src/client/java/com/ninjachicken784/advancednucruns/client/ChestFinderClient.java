@@ -34,7 +34,7 @@ import com.ninjachicken784.advancednucruns.DivanTracker;
 final class ChestFinderClient {
 	private static final ChestFinder FINDER = new ChestFinder();
 	private static final Pattern TREASURE = Pattern.compile("TREASURE:\\s*([0-9]+(?:\\.[0-9]+)?)\\s*m");
-	private static final int CENTER_CHECK_TICKS = 20;
+	private static final int CENTER_CHECK_TICKS = 5;
 	private static final int GOLD = ARGB.color(255, 255, 200, 0);
 	private static final int GOLD_FILL = ARGB.color(80, 255, 200, 0);
 	private static final int YELLOW = ARGB.color(255, 255, 255, 85);
@@ -47,6 +47,7 @@ final class ChestFinderClient {
 	private static int ticks;
 	private static int inventoryTicks;
 	private static long lastOpenMillis;
+	private static BlockPos lastOpenPos;
 
 	private ChestFinderClient() { }
 
@@ -68,7 +69,7 @@ final class ChestFinderClient {
 		ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> reset(true));
 		UseBlockCallback.EVENT.register((player, level, hand, hit) -> {
 			if (level.isClientSide() && HudVisibility.toolsOn() && HudVisibility.inCrystalHollows()
-				&& level.getBlockState(hit.getBlockPos()).is(Blocks.CHEST)) {
+				&& level.getBlockState(hit.getBlockPos()).is(Blocks.CHEST) && isTreasureChest(player, hit.getBlockPos())) {
 				chestOpened(hit.getBlockPos());
 			}
 			return InteractionResult.PASS;
@@ -111,11 +112,25 @@ final class ChestFinderClient {
 		result = ChestFinder.Result.NONE;
 	}
 
+	/**
+	 * Only chests of the Metal Detector count, not any chest in the Crystal Hollows: a chest on one of
+	 * the known spots of the Mines, or, while the Mines' center is not known yet, any chest clicked
+	 * while holding the Metal Detector.
+	 */
+	private static boolean isTreasureChest(net.minecraft.world.entity.player.Player player, BlockPos pos) {
+		if (FINDER.hasCenter()) {
+			return FINDER.isKnownSpot(pos.getX(), pos.getY(), pos.getZ());
+		}
+		return player.getMainHandItem().getHoverName().getString().contains("Metal Detector");
+	}
+
 	private static void chestOpened(BlockPos pos) {
 		long now = AdvancedNucRunsClient.nowMillis();
-		if (now - lastOpenMillis < 1500L) {
+		// The same chest clicked again (or both hands) is still one chest.
+		if (pos.equals(lastOpenPos) && now - lastOpenMillis < 15_000L) {
 			return;
 		}
+		lastOpenPos = pos.immutable();
 		lastOpenMillis = now;
 		AdvancedNucRunsClient.DIVAN.chestOpened(now);
 		TrackerStore.save();
@@ -179,7 +194,11 @@ final class ChestFinderClient {
 		double distance = Double.parseDouble(matcher.group(1));
 		double eyeShift = client.player.getEyeHeight() - 1.62d;
 		FINDER.addReading(client.player.getX(), client.player.getY() + eyeShift, client.player.getZ(), distance);
-		result = FINDER.solve();
+		// A reading that fits nothing (for example while running) must not remove a chest that is already shown.
+		ChestFinder.Result solved = FINDER.solve();
+		if (solved.best() != null) {
+			result = solved;
+		}
 		return true;
 	}
 
